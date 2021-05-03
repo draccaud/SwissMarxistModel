@@ -28,7 +28,7 @@ class PrettyWidget(QWidget):
 
         btn2 = QPushButton('Plot 2 ', self)
         btn2.resize(btn2.sizeHint())
-        # btn2.clicked.connect(self.plot2)
+        btn2.clicked.connect(self.plot2)
         grid.addWidget(btn2, 5, 1)
 
         self.figure = matplotlib.figure.Figure()
@@ -38,59 +38,52 @@ class PrettyWidget(QWidget):
         self.show()
 
     def plot1(self):
+        self.canvas.draw()
+
+
+    def plot2(self):
         self.figure.clf()
 
-        ax1 = self.figure.add_subplot(211)
+        ax5 = self.figure.add_subplot(211)
 
-        # Values of each group
-        bars1 = [12, 28, 1, 8, 22]
-        bars2 = [28, 7, 16, 4, 10]
-        bars3 = [25, 3, 23, 25, 17]
+        data = np.array([[588, 265, 93], [342, 154, 54], [930, 419, 147]])
 
-        # Heights of bars1 + bars2
-        bars = np.add(bars1, bars2).tolist()
+        length = len(data)
+        x_labels = ['Secteur 1', 'Secteur 2', 'Total']
 
-        # The position of the bars on the x-axis
-        r = [0, 1, 2, 3, 4]
+        # Set plot parameters
+        width = 0.2  # width of bar
+        x = np.arange(length)
 
-        bar_width = 1
+        ax5.bar(x, data[:, 0], width, color='#000080', label='C')
+        ax5.bar(x + width, data[:, 1], width, color='#0F52BA', label='V')
+        ax5.bar(x + (2 * width), data[:, 2], width, color='#6593F5', label='S')
 
-        # Create brown bars
-        ax1.axes.bar(r, bars1, color='#7f6d5f', edgecolor='white', width=bar_width)
-        # Create green bars (middle), on top of the first ones
-        ax1.axes.bar(r, bars2, bottom=bars1, color='#557f2d', edgecolor='white', width=bar_width)
-        # Create green bars (top)
-        ax1.axes.bar(r, bars3, bottom=bars, color='#2d7f5e', edgecolor='white', width=bar_width)
+        ax5.set_ylabel('Metric')
+        #ax5.set_ylim(0, 75)
+        ax5.set_xticks(x + width + width / 2)
+        ax5.set_xticklabels(x_labels)
+        ax5.set_xlabel('Scenario')
+        ax5.set_title('Title')
+        ax5.legend()
 
-        ax1.plot()
+        #plt.grid(True, 'major', 'y', ls='--', lw=.5, c='k', alpha=.3)
+
+        ax5.plot()
 
         ax2 = self.figure.add_subplot(234)
-        df = pd.DataFrame({'nb_people': [random.randint(1, 10) for _ in range(4)],
-                           'group': ["group A", "group B", "group C", "group D"]})
-
-        squarify.plot(sizes=df['nb_people'], label=df['group'], alpha=.8, ax=ax2)
+        squarify.plot(sizes=[1], label=["Total"], alpha=.8, ax=ax2)
         ax2.axis('off')
 
         ax3 = self.figure.add_subplot(235)
-        df = pd.DataFrame({'nb_people': [random.randint(1, 10) for _ in range(4)],
-                           'group': ["group A", "group B", "group C", "group D"]})
-
-        squarify.plot(sizes=df['nb_people'], label=df['group'], alpha=.8, ax=ax3)
+        squarify.plot(sizes=[1], label=['Total'], alpha=.8, ax=ax3)
         ax3.axis('off')
 
         ax4 = self.figure.add_subplot(236)
-        df = pd.DataFrame({'nb_people': [random.randint(1, 10) for _ in range(4)],
-                           'group': ["group A", "group B", "group C", "group D"]})
-
-        squarify.plot(sizes=df['nb_people'], label=df['group'], alpha=.8, ax=ax4)
+        squarify.plot(sizes=[1], label=['Total'], alpha=.8, ax=ax4)
         ax4.axis('off')
 
         self.canvas.draw()
-
-        self.canvas.draw_idle()
-
-    def plot2(self):
-        return
 
 
 app = QApplication(sys.argv)

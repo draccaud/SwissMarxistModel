@@ -16,7 +16,7 @@ class PrettyWidget(QWidget):
         self.initUI()
 
     def initUI(self):
-        self.setGeometry(100, 100, 800, 600)
+        self.setGeometry(100, 100, 800, 480)
 
         grid = QGridLayout()
         self.setLayout(grid)

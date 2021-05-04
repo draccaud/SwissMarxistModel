@@ -63,24 +63,24 @@ class PrettyWidget(QWidget):
         #ax5.set_ylim(0, 75)
         ax5.set_xticks(x + width + width / 2)
         ax5.set_xticklabels(x_labels)
+        #ax5.set_Title()
         ax5.legend()
 
         ax5.grid(True, 'major', 'y', ls='--', lw=.5, c='k', alpha=.3)
 
-        #plt.grid(True, 'major', 'y', ls='--', lw=.5, c='k', alpha=.3)
-
         ax5.plot()
 
         ax2 = self.figure.add_subplot(234)
-        squarify.plot(sizes=[1], label=["Total"], alpha=.8, ax=ax2)
+
+        squarify.plot(sizes=[1, 2], label=["Total", ""], color=["#3498db", "white"], alpha=.8, ax=ax2)
         ax2.axis('off')
 
         ax3 = self.figure.add_subplot(235)
-        squarify.plot(sizes=[1], label=['Total'], alpha=.8, ax=ax3)
+        squarify.plot(sizes=[2, 1], label=['Total', ""], color=['#e74c3c', "white"], alpha=.8, ax=ax3)
         ax3.axis('off')
 
         ax4 = self.figure.add_subplot(236)
-        squarify.plot(sizes=[1], label=['Total'], alpha=.8, ax=ax4)
+        squarify.plot(sizes=[1], label=['Total'], color=['#7f8c8d'], alpha=.8, ax=ax4)
         ax4.axis('off')
 
         self.canvas.draw()

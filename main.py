@@ -55,17 +55,17 @@ class PrettyWidget(QWidget):
         width = 0.2  # width of bar
         x = np.arange(length)
 
-        ax5.bar(x, data[:, 0], width, color='#000080', label='C')
-        ax5.bar(x + width, data[:, 1], width, color='#0F52BA', label='V')
-        ax5.bar(x + (2 * width), data[:, 2], width, color='#6593F5', label='S')
+        ax5.bar(x, data[:, 0], width, color='#3498db', label='Capital constant (C)')
+        ax5.bar(x + width, data[:, 1], width, color='#e74c3c', label='Capital variable (V)')
+        ax5.bar(x + (2 * width), data[:, 2], width, color='#f1c40f', label='Surplus (S)')
 
-        ax5.set_ylabel('Metric')
+        ax5.set_ylabel('Milliards de CHF')
         #ax5.set_ylim(0, 75)
         ax5.set_xticks(x + width + width / 2)
         ax5.set_xticklabels(x_labels)
-        ax5.set_xlabel('Scenario')
-        ax5.set_title('Title')
         ax5.legend()
+
+        ax5.grid(True, 'major', 'y', ls='--', lw=.5, c='k', alpha=.3)
 
         #plt.grid(True, 'major', 'y', ls='--', lw=.5, c='k', alpha=.3)
 

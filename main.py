@@ -10,6 +10,37 @@ from PyQt5.QtWidgets import QWidget, QGridLayout, QPushButton, QApplication
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 
+def plotGraphSectors(figure, data):
+    """
+    Dessine le graphs des secteurs économiques
+    :param figure: La figure sur laquelle le graph est crée
+    :param data: Les données à afficher
+    :return:
+    """
+    #Crée le graphique
+    sectorsGraph = figure.add_subplot(211)
+
+    #Définit la largeur des barres
+    width = 0.2
+
+    x = np.arange(len(data))
+
+    #Définit les trois bares de secteur
+    sectorsGraph.bar(x, data[:, 0], width, color='#3498db', label='Capital constant (C)')
+    sectorsGraph.bar(x + width, data[:, 1], width, color='#e74c3c', label='Capital variable (V)')
+    sectorsGraph.bar(x + (2 * width), data[:, 2], width, color='#f1c40f', label='Surplus (S)')
+
+    #Définit les légendes en X
+    sectorsGraph.set_xticks(x + width + width / 2)
+    sectorsGraph.set_xticklabels(['Secteur 1', 'Secteur 2', 'Total'])
+
+    #Définit la légende en y
+    sectorsGraph.set_ylabel('Milliards de CHF')
+
+    #Définit la grille
+    sectorsGraph.grid(True, 'major', 'y', ls='--', lw=.5, c='k', alpha=.3)
+
+
 class PrettyWidget(QWidget):
     def __init__(self):
         super(PrettyWidget, self).__init__()
@@ -38,37 +69,17 @@ class PrettyWidget(QWidget):
         self.show()
 
     def plot1(self):
-        self.canvas.draw()
-
+        return
 
     def plot2(self):
         self.figure.clf()
 
-        ax5 = self.figure.add_subplot(211)
-
         data = np.array([[588, 265, 93], [342, 154, 54], [930, 419, 147]])
 
-        length = len(data)
-        x_labels = ['Secteur 1', 'Secteur 2', 'Total']
+        #David utilise cette fonction pour dessiner le graph
+        plotGraphSectors(self.figure, data)
 
-        # Set plot parameters
-        width = 0.2  # width of bar
-        x = np.arange(length)
-
-        ax5.bar(x, data[:, 0], width, color='#3498db', label='Capital constant (C)')
-        ax5.bar(x + width, data[:, 1], width, color='#e74c3c', label='Capital variable (V)')
-        ax5.bar(x + (2 * width), data[:, 2], width, color='#f1c40f', label='Surplus (S)')
-
-        ax5.set_ylabel('Milliards de CHF')
-        #ax5.set_ylim(0, 75)
-        ax5.set_xticks(x + width + width / 2)
-        ax5.set_xticklabels(x_labels)
-        #ax5.set_Title()
-        ax5.legend()
-
-        ax5.grid(True, 'major', 'y', ls='--', lw=.5, c='k', alpha=.3)
-
-        ax5.plot()
+        ####################################################
 
         ax2 = self.figure.add_subplot(234)
 

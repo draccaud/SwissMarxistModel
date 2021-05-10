@@ -48,6 +48,8 @@ def plotGraphSectors(figure, data):
     #Définit la grille
     sectorsGraph.grid(True, 'major', 'y', ls='--', lw=.5, c='k', alpha=.3)
 
+    #Affiche les légendes des barres
+    sectorsGraph.legend()
 
 def CalcYear():
     C_1_t = (Total_t / 2.72) * 1.72

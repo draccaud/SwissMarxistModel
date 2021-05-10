@@ -16,6 +16,7 @@ Compo_org_2 = 2.22
 Taux_expl_1 = 0.35
 Taux_expl_2 = 0.35
 Total_t = 1496
+RapportSecteurs = 1.72
 
 
 def plotGraphSectors(figure, data):
@@ -45,6 +46,9 @@ def plotGraphSectors(figure, data):
     #Définit la légende en y
     sectorsGraph.set_ylabel('Milliards de CHF')
 
+    #titre
+    sectorsGraph.set_title('Année X')
+
     #Définit la grille
     sectorsGraph.grid(True, 'major', 'y', ls='--', lw=.5, c='k', alpha=.3)
 
@@ -52,12 +56,12 @@ def plotGraphSectors(figure, data):
     sectorsGraph.legend()
 
 def CalcYear():
-    C_1_t = (Total_t / 2.72) * 1.72
+    C_1_t = (Total_t / (RapportSecteurs + 1)) * RapportSecteurs
     V_1_t = C_1_t / Compo_org_1
     S_1_t = V_1_t * Taux_expl_1
     Tot_1_t = C_1_t + V_1_t + S_1_t
 
-    C_2_t = Total_t / 2.72
+    C_2_t = Total_t / (RapportSecteurs + 1)
     V_2_t = C_2_t / Compo_org_2
     S_2_t = V_2_t * Taux_expl_2
     Tot_2_t = C_2_t + V_2_t + S_2_t
@@ -155,7 +159,7 @@ class PrettyWidget(QWidget):
         ax3.axis('off')
 
         ax4 = self.figure.add_subplot(236)
-        squarify.plot(sizes=[Tot_3_t], label=['Total'], color=['#7f8c8d'], alpha=.8, ax=ax4)
+        squarify.plot(sizes=[Tot_1_t, Tot_2_t], label=['Total S1', 'Total S2'], color=['#3498db', '#e74c3c'], alpha=.8, ax=ax4)
         ax4.axis('off')
 
         self.canvas.draw()

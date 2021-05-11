@@ -1,4 +1,3 @@
-import random
 import sys
 
 import matplotlib
@@ -6,7 +5,8 @@ import matplotlib.figure
 import numpy as np
 import pandas as pd
 import squarify
-from PyQt5.QtWidgets import QWidget, QGridLayout, QPushButton, QApplication
+from PyQt5.QtGui import QIntValidator
+from PyQt5.QtWidgets import QWidget, QGridLayout, QPushButton, QApplication, QLabel, QInputDialog, QLineEdit
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 #Définition des variables
@@ -101,6 +101,89 @@ def dynemisesizeaquar(value, total):
     AffichageDynamique = [AffPro, AffValue, AffPro, AffPro]
     return AffichageDynamique
 
+class Window2(QWidget):
+    def __init__(self):
+        super(Window2, self).__init__()
+        self.initWindows2()
+
+    def initWindows2(self):
+        self.setGeometry(100, 100, 800, 480)
+        self.setWindowTitle("Window22222")
+
+        grid = QGridLayout()
+        self.setLayout(grid)
+
+        labExp1 = QLabel("Taux d'exploitation du secteur 1:", self)
+        grid.addWidget(labExp1, 1, 1)
+
+        ediExp1 = QLineEdit(str(Taux_expl_1))
+        #ediExp1.setValidator(QIntValidator())
+        grid.addWidget(ediExp1, 1, 2)
+
+        labExp2 = QLabel("Taux d'exploitation du secteur 2:", self)
+        grid.addWidget(labExp2, 2, 1)
+
+        ediExp2 = QLineEdit(str(Taux_expl_2))
+        #ediExp2.setValidator(QIntValidator())
+        grid.addWidget(ediExp2, 2, 2)
+
+        labOrga1 = QLabel("Composition organique du secteur 1:", self)
+        grid.addWidget(labOrga1, 3, 1)
+
+        ediOrga1 = QLineEdit(str(Compo_org_1))
+        #ediOrga1.setValidator(QIntValidator())
+        grid.addWidget(ediOrga1, 3, 2)
+
+        labOrga2 = QLabel("Composition organique du secteur 2:", self)
+        grid.addWidget(labOrga2, 4, 1)
+
+        ediOrga2 = QLineEdit(str(Compo_org_2))
+        #ediOrga2.setValidator(QIntValidator())
+        grid.addWidget(ediOrga2, 4, 2)
+
+        labRapports = QLabel("Rapports entre secteur 1 et 2:", self)
+        grid.addWidget(labRapports, 5, 1)
+
+        ediRapports = QLineEdit(str(RapportSecteurs))
+        #ediRapports.setValidator(QIntValidator())
+        grid.addWidget(ediRapports, 5, 2)
+
+        labTotal = QLabel("Total:", self)
+        grid.addWidget(labTotal, 6, 1)
+
+        ediTotal = QLineEdit(str(Total_t))
+        #ediTotal.setValidator(QIntValidator())
+        grid.addWidget(ediTotal, 6, 2)
+
+        btnCancel = QPushButton('Cancel', self)
+        btnCancel.resize(btnCancel.sizeHint())
+        btnCancel.clicked.connect(self.Cancel)
+        grid.addWidget(btnCancel, 7, 1)
+
+        btnModify = QPushButton('Mofify', self)
+        btnModify.resize(btnModify.sizeHint())
+        btnModify.clicked.connect(lambda: self.Modify(ediOrga1.text(), ediOrga2.text(), ediExp1.text(), ediExp2.text(), ediRapports.text(), ediTotal.text()))
+        grid.addWidget(btnModify, 7, 2)
+
+    def Cancel(self):
+        self.hide()
+
+    def Modify(self, org_1, org_2, expl_1, expl_2, Secteurs, t ):
+        global Compo_org_1
+        Compo_org_1 = float(org_1)
+        global Compo_org_2
+        Compo_org_2 = float(org_2)
+        global Taux_expl_1
+        Taux_expl_1 = float(expl_1)
+        global Taux_expl_2
+        Taux_expl_2 = float(expl_2)
+        global RapportSecteurs
+        RapportSecteurs = float(Secteurs)
+        global Total_t
+        Total_t = float(t)
+
+        self.hide()
+
 class PrettyWidget(QWidget):
     def __init__(self):
         super(PrettyWidget, self).__init__()
@@ -129,7 +212,9 @@ class PrettyWidget(QWidget):
         self.show()
 
     def plot1(self):
-        return
+        self.w = Window2()
+        self.w.show()
+        #self.hide()
 
     def plot2(self):
         self.figure.clf()
@@ -148,7 +233,6 @@ class PrettyWidget(QWidget):
         Tot_2_t = gettotal(DataYearOne[1])
         Tot_3_t = gettotal(DataYearOne[2])
 
-
         ax2 = self.figure.add_subplot(234)
 
         squarify.plot(sizes=dynemisesizeaquar(Tot_1_t, Tot_3_t), label=["", "Total", "", ""], color=["white", "#3498db", "white", "white"], alpha=.8, ax=ax2)
@@ -163,8 +247,6 @@ class PrettyWidget(QWidget):
         ax4.axis('off')
 
         self.canvas.draw()
-
-
 
 app = QApplication(sys.argv)
 app.aboutToQuit.connect(app.deleteLater)

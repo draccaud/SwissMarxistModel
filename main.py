@@ -5,12 +5,11 @@ import matplotlib.figure
 import numpy as np
 import pandas as pd
 import squarify
-from PyQt5.QtGui import QIntValidator
+from PyQt5.QtGui import QIntValidator, QIcon
 from PyQt5.QtWidgets import QWidget, QGridLayout, QPushButton, QApplication, QLabel, QInputDialog, QLineEdit
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
-#Définition des variables
-#Pour le moment statique, a faire en sorte qu'elles ne le soit pas par
+#Variables globales
 Compo_org_1 = 2.22
 Compo_org_2 = 2.22
 Taux_expl_1 = 0.35
@@ -95,124 +94,137 @@ def gettotal(TabResultats):
     return Total
 
 
-def dynemisesizeaquar(value, total):
-    AffValue = value / total
-    AffPro = (1 - AffValue) / 3
-    AffichageDynamique = [AffPro, AffValue, AffPro, AffPro]
-    return AffichageDynamique
+# def dynemisesizeaquar(value, total):
+#     AffValue = value / total
+#     AffPro = (1 - AffValue) / 3
+#     AffichageDynamique = [AffPro, AffValue, AffPro, AffPro]
+#     return AffichageDynamique
 
-class Window2(QWidget):
+class ParamWidget(QWidget):
     def __init__(self):
-        super(Window2, self).__init__()
-        self.initWindows2()
+        super(ParamWidget, self).__init__()
+        self.initParamWidget()
 
-    def initWindows2(self):
+    def initParamWidget(self):
+        #Taille du widget
         self.setGeometry(100, 100, 800, 480)
-        self.setWindowTitle("Window22222")
 
+        #Grille
         grid = QGridLayout()
         self.setLayout(grid)
 
-        labExp1 = QLabel("Taux d'exploitation du secteur 1:", self)
-        grid.addWidget(labExp1, 1, 1)
-
+        #Labels et inputs
+        labExp1 = QLabel("Taux d'exploitation du secteur 1 :", self)
         ediExp1 = QLineEdit(str(Taux_expl_1))
-        #ediExp1.setValidator(QIntValidator())
+        grid.addWidget(labExp1, 1, 1)
         grid.addWidget(ediExp1, 1, 2)
 
-        labExp2 = QLabel("Taux d'exploitation du secteur 2:", self)
-        grid.addWidget(labExp2, 2, 1)
-
+        labExp2 = QLabel("Taux d'exploitation du secteur 2 :", self)
         ediExp2 = QLineEdit(str(Taux_expl_2))
-        #ediExp2.setValidator(QIntValidator())
+        grid.addWidget(labExp2, 2, 1)
         grid.addWidget(ediExp2, 2, 2)
 
-        labOrga1 = QLabel("Composition organique du secteur 1:", self)
-        grid.addWidget(labOrga1, 3, 1)
-
+        labOrga1 = QLabel("Composition organique du secteur 1 :", self)
         ediOrga1 = QLineEdit(str(Compo_org_1))
-        #ediOrga1.setValidator(QIntValidator())
+        grid.addWidget(labOrga1, 3, 1)
         grid.addWidget(ediOrga1, 3, 2)
 
-        labOrga2 = QLabel("Composition organique du secteur 2:", self)
-        grid.addWidget(labOrga2, 4, 1)
-
+        labOrga2 = QLabel("Composition organique du secteur 2 :", self)
         ediOrga2 = QLineEdit(str(Compo_org_2))
-        #ediOrga2.setValidator(QIntValidator())
+        grid.addWidget(labOrga2, 4, 1)
         grid.addWidget(ediOrga2, 4, 2)
 
-        labRapports = QLabel("Rapports entre secteur 1 et 2:", self)
-        grid.addWidget(labRapports, 5, 1)
-
+        labRapports = QLabel("Rapports entre les secteurs :", self)
         ediRapports = QLineEdit(str(RapportSecteurs))
-        #ediRapports.setValidator(QIntValidator())
+        grid.addWidget(labRapports, 5, 1)
         grid.addWidget(ediRapports, 5, 2)
 
-        labTotal = QLabel("Total:", self)
-        grid.addWidget(labTotal, 6, 1)
-
+        labTotal = QLabel("Total :", self)
         ediTotal = QLineEdit(str(Total_t))
-        #ediTotal.setValidator(QIntValidator())
+        grid.addWidget(labTotal, 6, 1)
         grid.addWidget(ediTotal, 6, 2)
 
-        btnCancel = QPushButton('Cancel', self)
-        btnCancel.resize(btnCancel.sizeHint())
+        #Bouton annuler
+        btnCancel = QPushButton('Annuler', self)
         btnCancel.clicked.connect(self.Cancel)
         grid.addWidget(btnCancel, 7, 1)
 
-        btnModify = QPushButton('Mofify', self)
+        #Bouton enregistrer
+        btnModify = QPushButton('Enregistrer', self)
         btnModify.resize(btnModify.sizeHint())
-        btnModify.clicked.connect(lambda: self.Modify(ediOrga1.text(), ediOrga2.text(), ediExp1.text(), ediExp2.text(), ediRapports.text(), ediTotal.text()))
+        btnModify.clicked.connect(lambda: self.Save(ediOrga1.text(), ediOrga2.text(), ediExp1.text(), ediExp2.text(), ediRapports.text(), ediTotal.text()))
         grid.addWidget(btnModify, 7, 2)
 
     def Cancel(self):
+        """
+        Annule la modification des paramètres et ferme la fenêtre
+        :return:
+        """
         self.hide()
 
-    def Modify(self, org_1, org_2, expl_1, expl_2, Secteurs, t ):
+    def Save(self, orga1, orga2, expl1, expl2, sectors, total):
+        """
+        Enregistre les nouvelles valeurs des paramètres
+        :param orga1: Nouvelle composition organique du secteur 1
+        :param orga2: Nouvelle composition organique du secteur 2
+        :param expl1: Nouveaux taux d'exploitation du secteur 1
+        :param expl2: Nouveaux taux d'exploitation du secteur 2
+        :param sectors: Nouveau rapport entre les secteurs
+        :param total: Nouveau total
+        :return:
+        """
+        #Modifie les valeurs des paramètres globaux
         global Compo_org_1
-        Compo_org_1 = float(org_1)
-        global Compo_org_2
-        Compo_org_2 = float(org_2)
-        global Taux_expl_1
-        Taux_expl_1 = float(expl_1)
-        global Taux_expl_2
-        Taux_expl_2 = float(expl_2)
-        global RapportSecteurs
-        RapportSecteurs = float(Secteurs)
-        global Total_t
-        Total_t = float(t)
+        Compo_org_1 = float(orga1)
 
+        global Compo_org_2
+        Compo_org_2 = float(orga2)
+
+        global Taux_expl_1
+        Taux_expl_1 = float(expl1)
+
+        global Taux_expl_2
+        Taux_expl_2 = float(expl2)
+
+        global RapportSecteurs
+        RapportSecteurs = float(sectors)
+
+        global Total_t
+        Total_t = float(total)
+
+        #Ferme le widget des paramètres
         self.hide()
 
-class PrettyWidget(QWidget):
+class MainWidget(QWidget):
     def __init__(self):
-        super(PrettyWidget, self).__init__()
-        self.initUI()
+        super(MainWidget, self).__init__()
+        self.initMainWidget()
 
-    def initUI(self):
+    def initMainWidget(self):
         self.setGeometry(100, 100, 800, 480)
 
         grid = QGridLayout()
         self.setLayout(grid)
 
-        btn1 = QPushButton('Plot 1 ', self)
+        btn1 = QPushButton(self)
         btn1.resize(btn1.sizeHint())
+        btn1.setIcon(QIcon("parameters.png"))
         btn1.clicked.connect(self.plot1)
-        grid.addWidget(btn1, 5, 0)
+        grid.addWidget(btn1, 1, 0)
 
         btn2 = QPushButton('Plot 2 ', self)
         btn2.resize(btn2.sizeHint())
         btn2.clicked.connect(self.plot2)
-        grid.addWidget(btn2, 5, 1)
+        grid.addWidget(btn2, 3, 0)
 
         self.figure = matplotlib.figure.Figure()
         self.canvas = FigureCanvas(self.figure)
-        grid.addWidget(self.canvas, 3, 0, 1, 2)
+        grid.addWidget(self.canvas, 2, 0, 1, 1)
 
         self.show()
 
     def plot1(self):
-        self.w = Window2()
+        self.w = ParamWidget()
         self.w.show()
         #self.hide()
 
@@ -233,22 +245,13 @@ class PrettyWidget(QWidget):
         Tot_2_t = gettotal(DataYearOne[1])
         Tot_3_t = gettotal(DataYearOne[2])
 
-        ax2 = self.figure.add_subplot(234)
-
-        squarify.plot(sizes=dynemisesizeaquar(Tot_1_t, Tot_3_t), label=["", "Total", "", ""], color=["white", "#3498db", "white", "white"], alpha=.8, ax=ax2)
-        ax2.axis('off')
-
-        ax3 = self.figure.add_subplot(235)
-        squarify.plot(sizes=dynemisesizeaquar(Tot_2_t, Tot_3_t), label=["", "Total", "", ""], color=["white", "#e74c3c", "white", "white"], alpha=.8, ax=ax3)
-        ax3.axis('off')
-
-        ax4 = self.figure.add_subplot(236)
-        squarify.plot(sizes=[Tot_1_t, Tot_2_t], label=['Total S1', 'Total S2'], color=['#3498db', '#e74c3c'], alpha=.8, ax=ax4)
-        ax4.axis('off')
+        totalsGraph = self.figure.add_subplot(212)
+        squarify.plot(sizes=[Tot_1_t, Tot_2_t], label=['Total S1', 'Total S2'], color=['#3498db', '#e74c3c'], alpha=.8, ax=totalsGraph)
+        totalsGraph.axis('off')
 
         self.canvas.draw()
 
 app = QApplication(sys.argv)
 app.aboutToQuit.connect(app.deleteLater)
-GUI = PrettyWidget()
+GUI = MainWidget()
 sys.exit(app.exec_())

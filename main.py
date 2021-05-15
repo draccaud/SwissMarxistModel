@@ -6,10 +6,11 @@ import numpy as np
 import pandas as pd
 import squarify
 from PyQt5.QtGui import QIntValidator, QIcon
-from PyQt5.QtWidgets import QWidget, QGridLayout, QPushButton, QApplication, QLabel, QInputDialog, QLineEdit
+from PyQt5.QtWidgets import QWidget, QGridLayout, QPushButton, QApplication, QLabel, QInputDialog, QLineEdit, \
+    QVBoxLayout
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
-#Variables globales
+# Variables globales
 Compo_org_1 = 2.22
 Compo_org_2 = 2.22
 Taux_expl_1 = 0.35
@@ -18,41 +19,42 @@ Total_t = 1496
 RapportSecteurs = 1.72
 
 
-def plotGraphSectors(figure, data):
+def plotSectors(figure, data):
     """
     Dessine le graphs des secteurs économiques
     :param figure: La figure sur laquelle le graph est crée
     :param data: Les données à afficher
     :return:
     """
-    #Crée le graphique
+    # Crée le graphique
     sectorsGraph = figure.add_subplot(211)
 
-    #Définit la largeur des barres
+    # Définit la largeur des barres
     width = 0.2
 
     x = np.arange(len(data))
 
-    #Définit les trois bares de secteur
+    # Définit les trois bares de secteur
     sectorsGraph.bar(x, data[:, 0], width, color='#3498db', label='Capital constant (C)')
     sectorsGraph.bar(x + width, data[:, 1], width, color='#e74c3c', label='Capital variable (V)')
     sectorsGraph.bar(x + (2 * width), data[:, 2], width, color='#f1c40f', label='Surplus (S)')
 
-    #Définit les légendes en X
+    # Définit les légendes en X
     sectorsGraph.set_xticks(x + width + width / 2)
     sectorsGraph.set_xticklabels(['Secteur 1', 'Secteur 2', 'Total'])
 
-    #Définit la légende en y
+    # Définit la légende en y
     sectorsGraph.set_ylabel('Milliards de CHF')
 
-    #titre
+    # titre
     sectorsGraph.set_title('Année X')
 
-    #Définit la grille
+    # Définit la grille
     sectorsGraph.grid(True, 'major', 'y', ls='--', lw=.5, c='k', alpha=.3)
 
-    #Affiche les légendes des barres
+    # Affiche les légendes des barres
     sectorsGraph.legend()
+
 
 def CalcYear():
     C_1_t = (Total_t / (RapportSecteurs + 1)) * RapportSecteurs
@@ -87,10 +89,11 @@ def CalcYear():
     TabResultat = [[C_1_t, V_1_t, S_1_t], [C_2_t, V_2_t, S_2_t], [C_3_t, V_3_t, S_3_t]]
     return TabResultat
 
+
 def gettotal(TabResultats):
     Total = 0
     for i in range(len(TabResultats)):
-        Total =  Total + TabResultats[i]
+        Total = Total + TabResultats[i]
     return Total
 
 
@@ -101,19 +104,31 @@ def gettotal(TabResultats):
 #     return AffichageDynamique
 
 class ParamWidget(QWidget):
+    """
+    Fenêtre de modification des paramètres
+    """
+
     def __init__(self):
+        """
+        Constructeur de la fenêtre des paramètres
+        """
         super(ParamWidget, self).__init__()
         self.initParamWidget()
 
     def initParamWidget(self):
-        #Taille du widget
+        """
+        Initialise la fenêtre des paramètres
+        :return:
+        """
+        # Taille du widget
         self.setGeometry(100, 100, 800, 480)
 
-        #Grille
+        # Grille
         grid = QGridLayout()
+        grid.setContentsMargins(150, 0, 150, 0)
         self.setLayout(grid)
 
-        #Labels et inputs
+        # Labels et inputs
         labExp1 = QLabel("Taux d'exploitation du secteur 1 :", self)
         ediExp1 = QLineEdit(str(Taux_expl_1))
         grid.addWidget(labExp1, 1, 1)
@@ -144,15 +159,17 @@ class ParamWidget(QWidget):
         grid.addWidget(labTotal, 6, 1)
         grid.addWidget(ediTotal, 6, 2)
 
-        #Bouton annuler
+        # Bouton annuler
         btnCancel = QPushButton('Annuler', self)
         btnCancel.clicked.connect(self.Cancel)
         grid.addWidget(btnCancel, 7, 1)
 
-        #Bouton enregistrer
+        # Bouton enregistrer
         btnModify = QPushButton('Enregistrer', self)
         btnModify.resize(btnModify.sizeHint())
-        btnModify.clicked.connect(lambda: self.Save(ediOrga1.text(), ediOrga2.text(), ediExp1.text(), ediExp2.text(), ediRapports.text(), ediTotal.text()))
+        btnModify.clicked.connect(
+            lambda: self.Save(ediOrga1.text(), ediOrga2.text(), ediExp1.text(), ediExp2.text(), ediRapports.text(),
+                              ediTotal.text()))
         grid.addWidget(btnModify, 7, 2)
 
     def Cancel(self):
@@ -173,7 +190,7 @@ class ParamWidget(QWidget):
         :param total: Nouveau total
         :return:
         """
-        #Modifie les valeurs des paramètres globaux
+        # Modifie les valeurs des paramètres globaux
         global Compo_org_1
         Compo_org_1 = float(orga1)
 
@@ -192,15 +209,31 @@ class ParamWidget(QWidget):
         global Total_t
         Total_t = float(total)
 
-        #Ferme le widget des paramètres
+        # Réactualise les graphiques
+        mainWidget.plotGraphs()
+
+        # Ferme le widget des paramètres
         self.hide()
 
+
+
 class MainWidget(QWidget):
+    """
+    Fenêtre principale de l'application
+    """
+
     def __init__(self):
+        """
+        Constructeur de la fenêtre principale
+        """
         super(MainWidget, self).__init__()
         self.initMainWidget()
 
     def initMainWidget(self):
+        """
+        Initialise la fenêtre principale
+        :return:
+        """
         self.setGeometry(100, 100, 800, 480)
 
         grid = QGridLayout()
@@ -209,49 +242,62 @@ class MainWidget(QWidget):
         btn1 = QPushButton(self)
         btn1.resize(btn1.sizeHint())
         btn1.setIcon(QIcon("parameters.png"))
-        btn1.clicked.connect(self.plot1)
+        btn1.clicked.connect(self.openParamWidget)
         grid.addWidget(btn1, 1, 0)
 
         btn2 = QPushButton('Plot 2 ', self)
         btn2.resize(btn2.sizeHint())
-        btn2.clicked.connect(self.plot2)
+        btn2.clicked.connect(self.plotGraphs)
         grid.addWidget(btn2, 3, 0)
 
         self.figure = matplotlib.figure.Figure()
         self.canvas = FigureCanvas(self.figure)
         grid.addWidget(self.canvas, 2, 0, 1, 1)
 
+        #Dessine les graphiques
+        self.plotGraphs()
+
         self.show()
 
-    def plot1(self):
-        self.w = ParamWidget()
-        self.w.show()
-        #self.hide()
+    def openParamWidget(self):
+        """
+        Instancie, puis affiche une fenêtre de modification des paramètres
+        :return:
+        """
 
-    def plot2(self):
+        self.paramWidget = ParamWidget()
+        self.paramWidget.show()
+        # self.hide()
+
+    def plotGraphs(self):
+        """
+        Dessine les graphiques sur la page principale
+        :return:
+        """
+
+        # Remise à zéro
         self.figure.clf()
 
-        #On fait les calculs pour l'année une
+        # Données de l'année une
         DataYearOne = CalcYear()
 
-        data = np.array(DataYearOne)
+        #Dessine le graphique des secteurs
+        plotSectors(self.figure, np.array(DataYearOne))
 
-        #David utilise cette fonction pour dessiner le graph
-        plotGraphSectors(self.figure, data)
-
-        ####################################################
-
+        #Dessine le graphique des totaux
         Tot_1_t = gettotal(DataYearOne[0])
         Tot_2_t = gettotal(DataYearOne[1])
-        Tot_3_t = gettotal(DataYearOne[2])
+        #Tot_3_t = gettotal(DataYearOne[2])
 
         totalsGraph = self.figure.add_subplot(212)
-        squarify.plot(sizes=[Tot_1_t, Tot_2_t], label=['Total S1', 'Total S2'], color=['#3498db', '#e74c3c'], alpha=.8, ax=totalsGraph)
+        squarify.plot(sizes=[Tot_1_t, Tot_2_t], label=['Total S1', 'Total S2'], color=['#3498db', '#e74c3c'], alpha=.8,
+                      ax=totalsGraph)
         totalsGraph.axis('off')
 
         self.canvas.draw()
 
+
 app = QApplication(sys.argv)
 app.aboutToQuit.connect(app.deleteLater)
-GUI = MainWidget()
+mainWidget = MainWidget()
 sys.exit(app.exec_())

@@ -244,7 +244,7 @@ class MainWidget(QWidget):
         #Bouton info
         btnInfo = QPushButton(self)
         btnInfo.setIcon(QIcon("info.png"))
-        #btnInfo.clicked.connect(self.openInfoWidget)
+        btnInfo.clicked.connect(self.plot_clustered_stacked)
         topLayout.addWidget(btnInfo)
 
         #Bouton paramètres
@@ -291,6 +291,9 @@ class MainWidget(QWidget):
         self.paramWidget.show()
         # self.hide()
 
+    def openInfoWidget(self):
+        return
+
     def plotGraphs(self):
         """
         Dessine les graphiques sur la page principale
@@ -317,6 +320,63 @@ class MainWidget(QWidget):
         totalsGraph.axis('off')
 
         self.canvas.draw()
+
+
+    def plot_clustered_stacked(self, dfall = [], **kwargs):
+
+        # create fake dataframes
+        # Les c
+        df1 = pd.DataFrame(np.array([[111, 0], [121, 122], [131, 0]]))
+
+        # Les v
+        df2 = pd.DataFrame(np.array([[211, 212], [221, 222], [231, 232]]))
+
+        # Les s
+        df3 = pd.DataFrame(np.array([[311, 312], [321, 322], [331, 332]]))
+
+        dfall = [df1, df2, df3]
+
+        self.figure.clf()
+
+        axe = self.figure.add_subplot(111)
+
+        for df in dfall:  # for each data frame
+            axe = df.plot(kind="bar",
+                          linewidth=0,
+                          stacked=True,
+                          ax=axe,
+                          legend=False,
+                          grid=False,
+                          **kwargs)  # make bar plots
+
+        count = 0
+
+        h, l = axe.get_legend_handles_labels()  # get the handles we want to modify
+        for i in range(0, 6, 2):  # len(h) = n_col * n_df
+            for j, pa in enumerate(h[i:i + 2]):
+                for rect in pa.patches:  # for each index
+                    rect.set_x(rect.get_x() + 1 / 4 * i / 2)
+                    rect.set_width(1 / 4)
+
+                    if count <= 2:
+                        rect.set_color("blue")
+                    elif count == 6 or count == 7 or count == 8:
+                        rect.set_color("red")
+                    elif count == 12 or count == 13 or count == 14:
+                        rect.set_color("yellow")
+
+                    count = count + 1
+
+        axe.set_xticks((np.arange(0, 6, 2) + 1 / 4) / 2)
+        axe.set_xticklabels(["Secteur 1", "Secteur 2", "Total"], rotation=0)
+
+        l1 = axe.legend(h[:2], ["base", "ajout"], loc=[1.01, 0.5])
+
+        axe.add_artist(l1)
+
+        self.canvas.draw()
+
+        return axe
 
 
 app = QApplication(sys.argv)

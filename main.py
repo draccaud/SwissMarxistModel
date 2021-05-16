@@ -7,7 +7,7 @@ import pandas as pd
 import squarify
 from PyQt5.QtGui import QIntValidator, QIcon
 from PyQt5.QtWidgets import QWidget, QGridLayout, QPushButton, QApplication, QLabel, QInputDialog, QLineEdit, \
-    QVBoxLayout
+    QVBoxLayout, QHBoxLayout, QFormLayout
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 # Variables globales
@@ -123,54 +123,54 @@ class ParamWidget(QWidget):
         # Taille du widget
         self.setGeometry(100, 100, 800, 480)
 
-        # Grille
-        grid = QGridLayout()
-        grid.setContentsMargins(150, 0, 150, 0)
-        self.setLayout(grid)
+        #Layout des paramètres
+        paramLayout = QFormLayout()
+        self.setLayout(paramLayout)
+        paramLayout.setContentsMargins(150, 100, 150, 0)
 
-        # Labels et inputs
+        #Taux d'exploitation du secteur 1
         labExp1 = QLabel("Taux d'exploitation du secteur 1 :", self)
         ediExp1 = QLineEdit(str(Taux_expl_1))
-        grid.addWidget(labExp1, 1, 1)
-        grid.addWidget(ediExp1, 1, 2)
+        paramLayout.addRow(labExp1, ediExp1)
 
+        #Taux d'exploitation du secteur 2
         labExp2 = QLabel("Taux d'exploitation du secteur 2 :", self)
         ediExp2 = QLineEdit(str(Taux_expl_2))
-        grid.addWidget(labExp2, 2, 1)
-        grid.addWidget(ediExp2, 2, 2)
+        paramLayout.addRow(labExp2, ediExp2)
 
+        #Composition organique du secteur 1
         labOrga1 = QLabel("Composition organique du secteur 1 :", self)
         ediOrga1 = QLineEdit(str(Compo_org_1))
-        grid.addWidget(labOrga1, 3, 1)
-        grid.addWidget(ediOrga1, 3, 2)
+        paramLayout.addRow(labOrga1, ediOrga1)
 
+        #Composition organique du secteur 2
         labOrga2 = QLabel("Composition organique du secteur 2 :", self)
         ediOrga2 = QLineEdit(str(Compo_org_2))
-        grid.addWidget(labOrga2, 4, 1)
-        grid.addWidget(ediOrga2, 4, 2)
+        paramLayout.addRow(labOrga2, ediOrga2)
 
+        #Rapport secteurs 1 et 2
         labRapports = QLabel("Rapports entre les secteurs :", self)
         ediRapports = QLineEdit(str(RapportSecteurs))
-        grid.addWidget(labRapports, 5, 1)
-        grid.addWidget(ediRapports, 5, 2)
+        paramLayout.addRow(labRapports, ediRapports)
 
+        #Total
         labTotal = QLabel("Total :", self)
         ediTotal = QLineEdit(str(Total_t))
-        grid.addWidget(labTotal, 6, 1)
-        grid.addWidget(ediTotal, 6, 2)
+        paramLayout.addRow(labTotal, ediTotal)
 
         # Bouton annuler
-        btnCancel = QPushButton('Annuler', self)
+        btnCancel = QPushButton(self)
         btnCancel.clicked.connect(self.Cancel)
-        grid.addWidget(btnCancel, 7, 1)
+        btnCancel.setIcon(QIcon("cancel.png"))
 
         # Bouton enregistrer
-        btnModify = QPushButton('Enregistrer', self)
-        btnModify.resize(btnModify.sizeHint())
-        btnModify.clicked.connect(
+        btnSave = QPushButton(self)
+        btnSave.setIcon(QIcon("save.png"))
+        btnSave.clicked.connect(
             lambda: self.Save(ediOrga1.text(), ediOrga2.text(), ediExp1.text(), ediExp2.text(), ediRapports.text(),
                               ediTotal.text()))
-        grid.addWidget(btnModify, 7, 2)
+
+        paramLayout.addRow(btnCancel, btnSave)
 
     def Cancel(self):
         """
@@ -215,8 +215,6 @@ class ParamWidget(QWidget):
         # Ferme le widget des paramètres
         self.hide()
 
-
-
 class MainWidget(QWidget):
     """
     Fenêtre principale de l'application
@@ -236,27 +234,51 @@ class MainWidget(QWidget):
         """
         self.setGeometry(100, 100, 800, 480)
 
-        grid = QGridLayout()
-        self.setLayout(grid)
+        #Layout principal
+        mainLayout = QVBoxLayout()
+        self.setLayout(mainLayout)
 
-        btn1 = QPushButton(self)
-        btn1.resize(btn1.sizeHint())
-        btn1.setIcon(QIcon("parameters.png"))
-        btn1.clicked.connect(self.openParamWidget)
-        grid.addWidget(btn1, 1, 0)
+        #Haut de la fenêtre
+        topLayout = QHBoxLayout()
 
-        btn2 = QPushButton('Plot 2 ', self)
-        btn2.resize(btn2.sizeHint())
-        btn2.clicked.connect(self.plotGraphs)
-        grid.addWidget(btn2, 3, 0)
+        #Bouton info
+        btnInfo = QPushButton(self)
+        btnInfo.setIcon(QIcon("info.png"))
+        #btnInfo.clicked.connect(self.openInfoWidget)
+        topLayout.addWidget(btnInfo)
 
+        #Bouton paramètres
+        btnParam = QPushButton(self)
+        btnParam.setIcon(QIcon("parameters.png"))
+        btnParam.clicked.connect(self.openParamWidget)
+        topLayout.addWidget(btnParam)
+
+        mainLayout.addLayout(topLayout)
+
+        #Figure et Canvas acceuilant les graphs
         self.figure = matplotlib.figure.Figure()
         self.canvas = FigureCanvas(self.figure)
-        grid.addWidget(self.canvas, 2, 0, 1, 1)
+        mainLayout.addWidget(self.canvas)
+
+        #Layout du bas
+        bottomLayout = QHBoxLayout()
+
+        #Bouton étape précédente
+        btnPreviousStep = QPushButton(self)
+        btnPreviousStep.setIcon(QIcon("previous.png"))
+        #btnPreviousStep.clicked.connect(self.previousStep)
+        bottomLayout.addWidget(btnPreviousStep)
+
+        # Bouton prochaine étape
+        btnNextStep = QPushButton(self)
+        btnNextStep.setIcon(QIcon("next.png"))
+        #btnNextStep.clicked.connect(self.nextStep)
+        bottomLayout.addWidget(btnNextStep)
+
+        mainLayout.addLayout(bottomLayout)
 
         #Dessine les graphiques
         self.plotGraphs()
-
         self.show()
 
     def openParamWidget(self):

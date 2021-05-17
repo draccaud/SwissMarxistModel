@@ -11,12 +11,14 @@ from PyQt5.QtWidgets import QWidget, QGridLayout, QPushButton, QApplication, QLa
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 # Variables globales
+DataYear = [0]
 Compo_org_1 = 2.22
 Compo_org_2 = 2.22
 Taux_expl_1 = 0.35
 Taux_expl_2 = 0.35
 Total_t = 1496
 RapportSecteurs = 1.72
+Annee = 1
 
 
 def plotSectors(figure, data):
@@ -47,7 +49,7 @@ def plotSectors(figure, data):
     sectorsGraph.set_ylabel('Milliards de CHF')
 
     # titre
-    sectorsGraph.set_title('Année X')
+    sectorsGraph.set_title('Année ' + str(Annee))
 
     # Définit la grille
     sectorsGraph.grid(True, 'major', 'y', ls='--', lw=.5, c='k', alpha=.3)
@@ -86,9 +88,42 @@ def CalcYear():
     S_3_t = int(S_3_t)
     """""
 
-    TabResultat = [[C_1_t, V_1_t, S_1_t], [C_2_t, V_2_t, S_2_t], [C_3_t, V_3_t, S_3_t]]
+    TabResultat = [[C_1_t, V_1_t, S_1_t, Tot_1_t, C_2_t, V_2_t, S_2_t, Tot_2_t, C_3_t, V_3_t, S_3_t, Tot_3_t, Acc_t]]
     return TabResultat
 
+def caclanneesuivante(Tab):
+    global Annee
+    totalanneepre = 0
+    # Calcul du total des années précédentes
+    if range(len(Tab))==0:
+        totalanneepre = (Tab[0] + Tab[1] + Tab[2]) - (Tab[0] + Tab[4])
+    else:
+        for i in range(len(Tab)):
+            totalanneepre = (Tab[i][0] + Tab[i][1] + Tab[i][2]) - (Tab[i][0] + Tab[i][4])
+
+    C_1_T_X = Tab[0][0] + (totalanneepre * (Compo_org_1 / (Compo_org_1 + 1)))
+    V_1_T_X = C_1_T_X / Compo_org_1
+    S_1_T_X = V_1_T_X * Taux_expl_1
+    Tot_1_T_X = C_1_T_X + V_1_T_X + S_1_T_X
+
+   #Calcule des C des années précédente pour l'accumulation total
+    Accumulation = Tab[(Annee-2)][12]
+    for i in range( len(Tab) - 1, -1, -1):
+        Accumulation = Accumulation - Tab[i][0]
+    C_2_T_X = Tab[(Annee-2)][4] + Accumulation
+    V_2_T_X = C_2_T_X / Compo_org_2
+    S_2_T_X = V_2_T_X * Taux_expl_2
+    Tot_2_T_X = C_2_T_X + V_2_T_X + S_2_T_X
+
+    C_3_T_X = C_1_T_X + C_2_T_X
+    V_3_T_X = V_1_T_X + V_2_T_X
+    S_3_T_X = S_1_T_X + S_2_T_X
+    Tot_3_T_X = C_3_T_X + V_3_T_X + S_3_T_X
+
+    Acc = Tot_1_T_X - C_3_T_X
+    NewRow = [C_1_T_X, V_1_T_X, S_1_T_X, Tot_1_T_X, C_2_T_X, V_2_T_X, S_2_T_X, Tot_2_T_X, C_3_T_X, V_3_T_X, S_3_T_X, Tot_3_T_X, Acc]
+    Tab.append(NewRow)
+    return Tab
 
 def gettotal(TabResultats):
     Total = 0
@@ -272,7 +307,7 @@ class MainWidget(QWidget):
         # Bouton prochaine étape
         btnNextStep = QPushButton(self)
         btnNextStep.setIcon(QIcon("next.png"))
-        #btnNextStep.clicked.connect(self.nextStep)
+        btnNextStep.clicked.connect(self.nextStep)
         bottomLayout.addWidget(btnNextStep)
 
         mainLayout.addLayout(bottomLayout)
@@ -299,19 +334,33 @@ class MainWidget(QWidget):
         Dessine les graphiques sur la page principale
         :return:
         """
+        global DataYear
 
         # Remise à zéro
         self.figure.clf()
 
-        # Données de l'année une
-        DataYearOne = CalcYear()
+
+        #Si année une
+        if Annee == 1:
+            DataYear = CalcYear()
+
+        else:
+            DataYear = caclanneesuivante(DataYear)
+
+        GraphData = [[DataYear[Annee - 1][0], DataYear[Annee - 1][1], DataYear[Annee - 1][2]], [DataYear[Annee - 1][4],
+                     DataYear[Annee - 1][5], DataYear[Annee - 1][6]], [DataYear[Annee - 1][8], DataYear[Annee - 1][9],
+                     DataYear[Annee - 1][10]]]
+        Tot_1_t = DataYear[Annee - 1][3]
+        Tot_2_t = DataYear[Annee - 1][7]
 
         #Dessine le graphique des secteurs
-        plotSectors(self.figure, np.array(DataYearOne))
+        #GraphData = [DataYear[Annee - 1][0], DataYear[Annee - 1][1],DataYear[Annee - 1][2],DataYear[Annee - 1][4],DataYear[Annee - 1][5],DataYear[Annee - 1][6], DataYear[Annee - 1][8],DataYear[Annee - 1][9],DataYear[Annee - 1][10]]
+
+        plotSectors(self.figure, np.array(GraphData))
 
         #Dessine le graphique des totaux
-        Tot_1_t = gettotal(DataYearOne[0])
-        Tot_2_t = gettotal(DataYearOne[1])
+        #Tot_1_t = DataYear[Annee - 1][3]
+        #Tot_2_t = DataYear[Annee - 1][7]
         #Tot_3_t = gettotal(DataYearOne[2])
 
         totalsGraph = self.figure.add_subplot(212)
@@ -320,6 +369,12 @@ class MainWidget(QWidget):
         totalsGraph.axis('off')
 
         self.canvas.draw()
+
+    def nextStep(self):
+        global Annee
+        Annee = Annee + 1
+        self.plotGraphs()
+
 
 
     def plot_clustered_stacked(self, dfall = [], **kwargs):

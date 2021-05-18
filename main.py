@@ -324,12 +324,6 @@ class MainWidget(QWidget):
         #Layout du bas
         bottomLayout = QHBoxLayout()
 
-        # Bouton reload
-        btnReload = QPushButton(self)
-        btnReload.setIcon(QIcon("reload.png"))
-        btnReload.clicked.connect(self.reload)
-        bottomLayout.addWidget(btnReload)
-
         #Bouton étape précédente
         btnPreviousStep = QPushButton(self)
         btnPreviousStep.setIcon(QIcon("previous.png"))
@@ -449,14 +443,6 @@ class MainWidget(QWidget):
         else:
             None
         self.plotGraphs()
-
-    def reload(self):
-        global Annee
-        global DataYear
-        Annee = 1
-        del DataYear
-        self.plotGraphs()
-
 
 
 

@@ -332,13 +332,13 @@ class MainWidget(QWidget):
 
         # Bouton étape par étape
         btnNextSmallStep = QPushButton(self)
-        btnNextSmallStep.setIcon(QIcon("next.png"))
+        btnNextSmallStep.setIcon(QIcon("right-arrow.png"))
         #btnNextSmallStep.clicked.connect(self.btnNextSmallStep)
         bottomLayout.addWidget(btnNextSmallStep)
 
         # Bouton prochaine année
         btnNextStep = QPushButton(self)
-        btnNextStep.setIcon(QIcon("fast-forward.png"))
+        btnNextStep.setIcon(QIcon("next.png"))
         btnNextStep.clicked.connect(self.nextStep)
         bottomLayout.addWidget(btnNextStep)
 

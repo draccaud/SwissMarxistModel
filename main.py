@@ -57,41 +57,54 @@ def plotSectors(figure, data):
     sectorsGraph.grid(True, 'major', 'y', ls='--', lw=.5, c='k', alpha=.3)
 
     # Affiche les légendes des barres
-    sectorsGraph.legend()
-
+    #sectorsGraph.legend()
 
 def CalcYear():
-    C_1_t = (Total_t / (RapportSecteurs + 1)) * RapportSecteurs
-    V_1_t = C_1_t / Compo_org_1
-    S_1_t = V_1_t * Taux_expl_1
-    Tot_1_t = C_1_t + V_1_t + S_1_t
+    #Total du secteur 1
+    total1 = (Total_t / (RapportSecteurs + 1)) * RapportSecteurs
+    #Diviseur permettant d'effectuer le prochain calcul
+    dividor = Compo_org_1 + Taux_expl_1 + 1
+    #Capital constant du secteur 1
+    constantCapital1 = Compo_org_1 / dividor * total1
+    #Capital variable du secteur 1
+    variableCapital1 = constantCapital1 / Compo_org_1
+    #Surplus du secteur 1
+    surplus1 = variableCapital1 * Taux_expl_1
 
-    C_2_t = Total_t / (RapportSecteurs + 1)
-    V_2_t = C_2_t / Compo_org_2
-    S_2_t = V_2_t * Taux_expl_2
-    Tot_2_t = C_2_t + V_2_t + S_2_t
+    #Total du secteur 2
+    total2 = Total_t / (RapportSecteurs + 1)
+    #Diviseur permettant d'effectuer le prochain calcul
+    dividor = Compo_org_2 + Taux_expl_2 + 1
+    #Capital constant du secteur 2
+    constantCapital2 = Compo_org_2 / dividor * total2
+    #Capital variable du secteur 2
+    variableCapital2 = constantCapital2 / Compo_org_2
+    # Surplus du secteur 2
+    surplus2 = variableCapital2 * Taux_expl_2
 
-    C_3_t = C_1_t + C_2_t
-    V_3_t = V_1_t + V_2_t
-    S_3_t = S_1_t + S_2_t
-    Tot_3_t = C_3_t + V_3_t + S_3_t
+    #Total de capital constant
+    constantCapitalTotal = constantCapital1 + constantCapital2
+    # Total de capital variable
+    variableCapitalTotal = variableCapital1 + variableCapital2
+    #Surplus total
+    surplusTotal = surplus1 + surplus2
 
-    Acc_t = Tot_1_t - (C_1_t + C_2_t)
-    """""
-    #On convertit tout en int
-    C_1_t = int(C_1_t)
-    V_1_t = int(V_1_t)
-    S_1_t = int(S_1_t)
-    C_2_t = int(C_2_t)
-    V_2_t = int(V_2_t)
-    S_2_t = int(S_2_t)
-    C_3_t = int(C_3_t)
-    V_3_t = int(V_3_t)
-    S_3_t = int(S_3_t)
-    """""
-
-    TabResultat = [[C_1_t, V_1_t, S_1_t, Tot_1_t, C_2_t, V_2_t, S_2_t, Tot_2_t, C_3_t, V_3_t, S_3_t, Tot_3_t, Acc_t]]
-    return TabResultat
+    #Accumulation totale
+    Acc_t = total1 - (constantCapital1 + constantCapital2)
+    # """""
+    # #On convertit tout en int
+    # C_1_t = int(C_1_t)
+    # V_1_t = int(V_1_t)
+    # S_1_t = int(S_1_t)
+    # C_2_t = int(C_2_t)
+    # V_2_t = int(V_2_t)
+    # S_2_t = int(S_2_t)
+    # C_3_t = int(C_3_t)
+    # V_3_t = int(V_3_t)
+    # S_3_t = int(S_3_t)
+    # """""
+    resultsTab = [[constantCapital1, variableCapital1, surplus1, total1, constantCapital2, variableCapital2, surplus2, total2, constantCapitalTotal, variableCapitalTotal, surplusTotal, Total_t, Acc_t]]
+    return resultsTab
 
 def caclanneesuivante(Tab):
     global Annee

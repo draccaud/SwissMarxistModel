@@ -41,6 +41,8 @@ def plotSectors(figure, data):
     sectorsGraph.bar(x + width, data[:, 1], width, color='#e74c3c', label='Capital variable (V)')
     sectorsGraph.bar(x + (2 * width), data[:, 2], width, color='#f1c40f', label='Surplus (S)')
 
+
+
     # Définit les légendes en X
     sectorsGraph.set_xticks(x + width + width / 2)
     sectorsGraph.set_xticklabels(['Secteur 1', 'Secteur 2', 'Total'])
@@ -301,7 +303,7 @@ class MainWidget(QWidget):
         #Bouton étape précédente
         btnPreviousStep = QPushButton(self)
         btnPreviousStep.setIcon(QIcon("previous.png"))
-        #btnPreviousStep.clicked.connect(self.previousStep)
+        btnPreviousStep.clicked.connect(self.previousStep)
         bottomLayout.addWidget(btnPreviousStep)
 
         # Bouton prochaine étape
@@ -339,13 +341,8 @@ class MainWidget(QWidget):
         # Remise à zéro
         self.figure.clf()
 
-
-        #Si année une
         if Annee == 1:
             DataYear = CalcYear()
-
-        else:
-            DataYear = caclanneesuivante(DataYear)
 
         GraphData = [[DataYear[Annee - 1][0], DataYear[Annee - 1][1], DataYear[Annee - 1][2]], [DataYear[Annee - 1][4],
                      DataYear[Annee - 1][5], DataYear[Annee - 1][6]], [DataYear[Annee - 1][8], DataYear[Annee - 1][9],
@@ -372,7 +369,23 @@ class MainWidget(QWidget):
 
     def nextStep(self):
         global Annee
+        global DataYear
         Annee = Annee + 1
+        # Si année une
+
+        if not DataYear[Annee-2]:
+            None
+
+        else:
+            DataYear = caclanneesuivante(DataYear)
+        self.plotGraphs()
+
+    def previousStep(self):
+        global Annee
+        if Annee > 1:
+            Annee = Annee - 1
+        else:
+            None
         self.plotGraphs()
 
 

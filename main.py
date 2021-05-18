@@ -302,6 +302,12 @@ class MainWidget(QWidget):
         btnInfo.clicked.connect(self.plot_clustered_stacked)
         topLayout.addWidget(btnInfo)
 
+        #Bouton reset
+        btnReset = QPushButton(self)
+        btnReset.setIcon(QIcon("reset.png"))
+        btnReset.clicked.connect(self.reset)
+        topLayout.addWidget(btnReset)
+
         #Bouton paramètres
         btnParam = QPushButton(self)
         btnParam.setIcon(QIcon("parameters.png"))
@@ -357,6 +363,32 @@ class MainWidget(QWidget):
         self.paramWidget = ParamWidget()
         self.paramWidget.show()
         # self.hide()
+
+    def reset(self):
+        """
+        Remet à zéro les paramètres et affiche le graph initial
+        :return:
+        """
+        #Remet à zéro les paramètres
+        global DataYear
+        DataYear = [0]
+        global Compo_org_1
+        Compo_org_1 = 2.22
+        global Compo_org_2
+        Compo_org_2 = 2.22
+        global Taux_expl_1
+        Taux_expl_1 = 0.35
+        global Taux_expl_2
+        Taux_expl_2 = 0.35
+        global Total_t
+        Total_t = 1496
+        global RapportSecteurs
+        RapportSecteurs = 1.72
+        global Annee
+        Annee = 1
+
+        #Dessine le graphique
+        self.plotGraphs()
 
     def openInfoWidget(self):
         return

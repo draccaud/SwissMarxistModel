@@ -108,35 +108,40 @@ def CalcYear():
 
 def caclanneesuivante(Tab):
     global Annee
-    totalanneepre = 0
+    previousAccumulation = 0
     # Calcul du total des années précédentes
-    if range(len(Tab))==0:
-        totalanneepre = (Tab[0] + Tab[1] + Tab[2]) - (Tab[0] + Tab[4])
+    if range(len(Tab)) == 0:
+        previousAccumulation = (Tab[0] + Tab[1] + Tab[2]) - (Tab[0] + Tab[4])
     else:
         for i in range(len(Tab)):
-            totalanneepre = (Tab[i][0] + Tab[i][1] + Tab[i][2]) - (Tab[i][0] + Tab[i][4])
+            previousAccumulation = (Tab[i][0] + Tab[i][1] + Tab[i][2]) - (Tab[i][0] + Tab[i][4])
 
-    C_1_T_X = Tab[0][0] + (totalanneepre * (Compo_org_1 / (Compo_org_1 + 1)))
-    V_1_T_X = C_1_T_X / Compo_org_1
-    S_1_T_X = V_1_T_X * Taux_expl_1
-    Tot_1_T_X = C_1_T_X + V_1_T_X + S_1_T_X
+    #Capital constant du secteur 1
+    constantCapital1 = Tab[Annee-2][0] + (previousAccumulation * (Compo_org_1 / (Compo_org_1 + 1)))
+    #Capital varibale du secteur 2
+    variableCapital1 = constantCapital1 / Compo_org_1
+    #Surplus du secteur 1
+    surplus1 = variableCapital1 * Taux_expl_1
+    #Total du secteur 1
+    sector1Total = constantCapital1 + variableCapital1 + surplus1
 
-   #Calcule des C des années précédente pour l'accumulation total
-    Accumulation = Tab[(Annee-2)][12]
-    for i in range( len(Tab) - 1, -1, -1):
+    constantCapital2 = Tab[(Annee-2)][4] + previousAccumulation - (constantCapital1 - Tab[Annee-2][0])
+    variableCapital2 = constantCapital2 / Compo_org_2
+    surplus2 = variableCapital2 * Taux_expl_2
+    sector2Total = constantCapital2 + variableCapital2 + surplus2
+
+    constantCapitalTotal = constantCapital1 +constantCapital2
+    variableCapitalTotal = variableCapital1 + variableCapital2
+    surplusTotal = surplus1 + surplus2
+    sectorsTotal = constantCapitalTotal + variableCapitalTotal + surplusTotal
+
+    # Calcule des C des années précédente pour l'accumulation total
+    Accumulation = Tab[(Annee - 2)][12]
+    for i in range(len(Tab) - 1, -1, -1):
         Accumulation = Accumulation - Tab[i][0]
-    C_2_T_X = Tab[(Annee-2)][4] + Accumulation
-    V_2_T_X = C_2_T_X / Compo_org_2
-    S_2_T_X = V_2_T_X * Taux_expl_2
-    Tot_2_T_X = C_2_T_X + V_2_T_X + S_2_T_X
 
-    C_3_T_X = C_1_T_X + C_2_T_X
-    V_3_T_X = V_1_T_X + V_2_T_X
-    S_3_T_X = S_1_T_X + S_2_T_X
-    Tot_3_T_X = C_3_T_X + V_3_T_X + S_3_T_X
-
-    Acc = Tot_1_T_X - C_3_T_X
-    NewRow = [C_1_T_X, V_1_T_X, S_1_T_X, Tot_1_T_X, C_2_T_X, V_2_T_X, S_2_T_X, Tot_2_T_X, C_3_T_X, V_3_T_X, S_3_T_X, Tot_3_T_X, Acc]
+    Acc = sector1Total - constantCapitalTotal
+    NewRow = [constantCapital1, variableCapital1, surplus1, sector1Total, constantCapital2, variableCapital2, surplus2, sector2Total, constantCapitalTotal, variableCapitalTotal, surplusTotal, sectorsTotal, Acc]
     Tab.append(NewRow)
     return Tab
 

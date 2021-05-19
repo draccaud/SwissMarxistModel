@@ -4,6 +4,9 @@ import matplotlib
 import matplotlib.figure
 import numpy as np
 import pandas as pd
+import mpld3
+from mpld3 import plugins
+from mpldatacursor import datacursor
 import squarify
 from PyQt5.QtGui import QIntValidator, QIcon
 from PyQt5.QtWidgets import QWidget, QGridLayout, QPushButton, QApplication, QLabel, QInputDialog, QLineEdit, \
@@ -40,8 +43,6 @@ def plotSectors(figure, data):
     sectorsGraph.bar(x, data[:, 0], width, color='#3498db', label='Capital constant (C)')
     sectorsGraph.bar(x + width, data[:, 1], width, color='#e74c3c', label='Capital variable (V)')
     sectorsGraph.bar(x + (2 * width), data[:, 2], width, color='#f1c40f', label='Surplus (S)')
-
-
 
     # Définit les légendes en X
     sectorsGraph.set_xticks(x + width + width / 2)
@@ -379,6 +380,9 @@ class MainWidget(QWidget):
         RapportSecteurs = 1.72
         global currentYear
         currentYear = 1
+
+        #Désactive le bouton permettant de revenir en arrière
+        mainWidget.btnPreviousStep.setEnabled(False)
 
         #Dessine le graphique
         self.plotGraphs()

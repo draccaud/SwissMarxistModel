@@ -18,7 +18,7 @@ Taux_expl_1 = 0.35
 Taux_expl_2 = 0.35
 Total_t = 1496
 RapportSecteurs = 1.72
-Annee = 1
+currentYear = 1
 
 
 def plotSectors(figure, data):
@@ -51,7 +51,7 @@ def plotSectors(figure, data):
     sectorsGraph.set_ylabel('Milliards de CHF')
 
     # titre
-    sectorsGraph.set_title('Année ' + str(Annee))
+    sectorsGraph.set_title('Année ' + str(currentYear))
 
     # Définit la grille
     sectorsGraph.grid(True, 'major', 'y', ls='--', lw=.5, c='k', alpha=.3)
@@ -61,7 +61,7 @@ def plotSectors(figure, data):
 
 def CalcYear():
     #Total du secteur 1
-    total1 = (Total_t / (RapportSecteurs + 1)) * RapportSecteurs
+    total1 = Total_t / (RapportSecteurs + 1) * RapportSecteurs
     #Diviseur permettant d'effectuer le prochain calcul
     dividor = Compo_org_1 + Taux_expl_1 + 1
     #Capital constant du secteur 1
@@ -107,17 +107,13 @@ def CalcYear():
     return resultsTab
 
 def caclanneesuivante(Tab):
-    global Annee
-    previousAccumulation = 0
-    # Calcul du total des années précédentes
-    if range(len(Tab)) == 0:
-        previousAccumulation = (Tab[0] + Tab[1] + Tab[2]) - (Tab[0] + Tab[4])
-    else:
-        for i in range(len(Tab)):
-            previousAccumulation = (Tab[i][0] + Tab[i][1] + Tab[i][2]) - (Tab[i][0] + Tab[i][4])
+    global currentYear
+
+    #Récupère l'accumulation de l'année précédente
+    latsYearAccumulation = Tab[currentYear-2][12]
 
     #Capital constant du secteur 1
-    constantCapital1 = Tab[Annee-2][0] + (previousAccumulation * (Compo_org_1 / (Compo_org_1 + 1)))
+    constantCapital1 = Tab[currentYear - 2][0] + (latsYearAccumulation * (Compo_org_1 / (Compo_org_1 + 1)))
     #Capital varibale du secteur 2
     variableCapital1 = constantCapital1 / Compo_org_1
     #Surplus du secteur 1
@@ -125,7 +121,7 @@ def caclanneesuivante(Tab):
     #Total du secteur 1
     sector1Total = constantCapital1 + variableCapital1 + surplus1
 
-    constantCapital2 = Tab[(Annee-2)][4] + previousAccumulation - (constantCapital1 - Tab[Annee-2][0])
+    constantCapital2 = Tab[(currentYear - 2)][4] + latsYearAccumulation - (constantCapital1 - Tab[currentYear - 2][0])
     variableCapital2 = constantCapital2 / Compo_org_2
     surplus2 = variableCapital2 * Taux_expl_2
     sector2Total = constantCapital2 + variableCapital2 + surplus2
@@ -136,12 +132,13 @@ def caclanneesuivante(Tab):
     sectorsTotal = constantCapitalTotal + variableCapitalTotal + surplusTotal
 
     # Calcule des C des années précédente pour l'accumulation total
-    Accumulation = Tab[(Annee - 2)][12]
-    for i in range(len(Tab) - 1, -1, -1):
-        Accumulation = Accumulation - Tab[i][0]
+    #Accumulation = Tab[(Annee - 2)][12]
+    #for i in range(len(Tab) - 1, -1, -1):
+     #   Accumulation = Accumulation - Tab[i][0]
 
     Acc = sector1Total - constantCapitalTotal
-    NewRow = [constantCapital1, variableCapital1, surplus1, sector1Total, constantCapital2, variableCapital2, surplus2, sector2Total, constantCapitalTotal, variableCapitalTotal, surplusTotal, sectorsTotal, Acc]
+    NewRow = [constantCapital1, variableCapital1, surplus1, sector1Total, constantCapital2, variableCapital2, surplus2,
+              sector2Total, constantCapitalTotal, variableCapitalTotal, surplusTotal, sectorsTotal, Acc]
     Tab.append(NewRow)
     return Tab
 
@@ -216,7 +213,7 @@ class ParamWidget(QWidget):
         # Bouton annuler
         btnCancel = QPushButton(self)
         btnCancel.clicked.connect(self.Cancel)
-        btnCancel.setIcon(QIcon("cancel.png"))
+        btnCancel.setIcon(QIcon("close.png"))
 
         # Bouton enregistrer
         btnSave = QPushButton(self)
@@ -298,19 +295,19 @@ class MainWidget(QWidget):
 
         #Bouton info
         btnInfo = QPushButton(self)
-        btnInfo.setIcon(QIcon("info.png"))
+        btnInfo.setIcon(QIcon("information.png"))
         btnInfo.clicked.connect(self.plot_clustered_stacked)
         topLayout.addWidget(btnInfo)
 
         #Bouton reset
         btnReset = QPushButton(self)
-        btnReset.setIcon(QIcon("reset.png"))
+        btnReset.setIcon(QIcon("restart.png"))
         btnReset.clicked.connect(self.reset)
         topLayout.addWidget(btnReset)
 
         #Bouton paramètres
         btnParam = QPushButton(self)
-        btnParam.setIcon(QIcon("parameters.png"))
+        btnParam.setIcon(QIcon("settings.png"))
         btnParam.clicked.connect(self.openParamWidget)
         topLayout.addWidget(btnParam)
 
@@ -326,19 +323,19 @@ class MainWidget(QWidget):
 
         #Bouton étape précédente
         btnPreviousStep = QPushButton(self)
-        btnPreviousStep.setIcon(QIcon("previous.png"))
+        btnPreviousStep.setIcon(QIcon("skip-back.png"))
         btnPreviousStep.clicked.connect(self.previousStep)
         bottomLayout.addWidget(btnPreviousStep)
 
         # Bouton étape par étape
         btnNextSmallStep = QPushButton(self)
-        btnNextSmallStep.setIcon(QIcon("right-arrow.png"))
+        btnNextSmallStep.setIcon(QIcon("arrow-right.png"))
         #btnNextSmallStep.clicked.connect(self.btnNextSmallStep)
         bottomLayout.addWidget(btnNextSmallStep)
 
         # Bouton prochaine année
         btnNextStep = QPushButton(self)
-        btnNextStep.setIcon(QIcon("next.png"))
+        btnNextStep.setIcon(QIcon("skip-forward.png"))
         btnNextStep.clicked.connect(self.nextStep)
         bottomLayout.addWidget(btnNextStep)
 
@@ -378,8 +375,8 @@ class MainWidget(QWidget):
         Total_t = 1496
         global RapportSecteurs
         RapportSecteurs = 1.72
-        global Annee
-        Annee = 1
+        global currentYear
+        currentYear = 1
 
         #Dessine le graphique
         self.plotGraphs()
@@ -397,14 +394,15 @@ class MainWidget(QWidget):
         # Remise à zéro
         self.figure.clf()
 
-        if Annee == 1:
+        if currentYear == 1:
             DataYear = CalcYear()
 
-        GraphData = [[DataYear[Annee - 1][0], DataYear[Annee - 1][1], DataYear[Annee - 1][2]], [DataYear[Annee - 1][4],
-                     DataYear[Annee - 1][5], DataYear[Annee - 1][6]], [DataYear[Annee - 1][8], DataYear[Annee - 1][9],
-                     DataYear[Annee - 1][10]]]
-        Tot_1_t = DataYear[Annee - 1][3]
-        Tot_2_t = DataYear[Annee - 1][7]
+        GraphData = [[DataYear[currentYear - 1][0], DataYear[currentYear - 1][1], DataYear[currentYear - 1][2]],
+                     [DataYear[currentYear - 1][4],DataYear[currentYear - 1][5], DataYear[currentYear - 1][6]],
+                     [DataYear[currentYear - 1][8], DataYear[currentYear - 1][9],DataYear[currentYear - 1][10]]]
+
+        Tot_1_t = DataYear[currentYear - 1][3]
+        Tot_2_t = DataYear[currentYear - 1][7]
 
         #Dessine le graphique des secteurs
         #GraphData = [DataYear[Annee - 1][0], DataYear[Annee - 1][1],DataYear[Annee - 1][2],DataYear[Annee - 1][4],DataYear[Annee - 1][5],DataYear[Annee - 1][6], DataYear[Annee - 1][8],DataYear[Annee - 1][9],DataYear[Annee - 1][10]]
@@ -424,12 +422,12 @@ class MainWidget(QWidget):
         self.canvas.draw()
 
     def nextStep(self):
-        global Annee
+        global currentYear
         global DataYear
-        Annee = Annee + 1
+        currentYear = currentYear + 1
         # Si année une
 
-        if not DataYear[Annee-2]:
+        if not DataYear[currentYear - 2]:
             None
 
         else:
@@ -437,9 +435,9 @@ class MainWidget(QWidget):
         self.plotGraphs()
 
     def previousStep(self):
-        global Annee
-        if Annee > 1:
-            Annee = Annee - 1
+        global currentYear
+        if currentYear > 1:
+            currentYear = currentYear - 1
         else:
             None
         self.plotGraphs()
@@ -499,6 +497,11 @@ class MainWidget(QWidget):
 
         #l1 = axe.legend(h[:2], ["base", "ajout"], loc=[1.01, 0.5])
         #axe.add_artist(l1)
+
+        totalsGraph = self.figure.add_subplot(212)
+        squarify.plot(sizes=[946, 550], label=['Total S1', 'Total S2'], color=['#3498db', '#e74c3c'], alpha=.8,
+                      ax=totalsGraph)
+        totalsGraph.axis('off')
 
         self.canvas.draw()
 

@@ -277,6 +277,7 @@ class MainWidget(QWidget):
         Constructeur de la fenêtre principale
         """
         super(MainWidget, self).__init__()
+        self.btnPreviousStep = QPushButton()
         self.initMainWidget()
 
     def initMainWidget(self):
@@ -322,10 +323,11 @@ class MainWidget(QWidget):
         bottomLayout = QHBoxLayout()
 
         #Bouton étape précédente
-        btnPreviousStep = QPushButton(self)
-        btnPreviousStep.setIcon(QIcon("skip-back.png"))
-        btnPreviousStep.clicked.connect(self.previousStep)
-        bottomLayout.addWidget(btnPreviousStep)
+        self.btnPreviousStep.setIcon(QIcon("skip-back.png"))
+        self.btnPreviousStep.clicked.connect(self.previousStep)
+        bottomLayout.addWidget(self.btnPreviousStep)
+        #Désactive de base le bouton
+        self.btnPreviousStep.setEnabled(False)
 
         # Bouton étape par étape
         btnNextSmallStep = QPushButton(self)
@@ -425,24 +427,28 @@ class MainWidget(QWidget):
         global currentYear
         global DataYear
         currentYear = currentYear + 1
-        # Si année une
 
+        # Si année une
         if not DataYear[currentYear - 2]:
             None
-
         else:
             DataYear = caclanneesuivante(DataYear)
+
+        #Active le bouton permettant de revenir en arrière
+        mainWidget.btnPreviousStep.setEnabled(True)
         self.plotGraphs()
 
     def previousStep(self):
         global currentYear
+
+        #Si on retourne à la première année, désactive le bouton permettant de revenir en arrière
+        if currentYear == 2:
+            mainWidget.btnPreviousStep.setEnabled(False)
+
+        #Ne retourne en arrière que si l'année actuelle n'est pas la première
         if currentYear > 1:
             currentYear = currentYear - 1
-        else:
-            None
-        self.plotGraphs()
-
-
+            self.plotGraphs()
 
     def plot_clustered_stacked(self, dfall = [], **kwargs):
 

@@ -450,19 +450,19 @@ class MainWidget(QWidget):
 
         # create fake dataframes
         # Les c
-        df1 = pd.DataFrame(np.array([[111, 0], [121, 122], [131, 0]]))
+        df1 = pd.DataFrame(np.array([[588, 0], [342, 80], [930, 0]]))
 
         # Les v
-        df2 = pd.DataFrame(np.array([[211, 212], [221, 222], [231, 232]]))
+        df2 = pd.DataFrame(np.array([[265, 0], [154, 0], [419, 0]]))
 
         # Les s
-        df3 = pd.DataFrame(np.array([[311, 312], [321, 322], [331, 332]]))
+        df3 = pd.DataFrame(np.array([[93, 0], [54, 0], [147, 0]]))
 
         dfall = [df1, df2, df3]
 
         self.figure.clf()
 
-        axe = self.figure.add_subplot(111)
+        axe = self.figure.add_subplot(211)
 
         for df in dfall:  # for each data frame
             axe = df.plot(kind="bar",
@@ -483,20 +483,22 @@ class MainWidget(QWidget):
                     rect.set_width(1 / 4)
 
                     if count <= 2:
-                        rect.set_color("blue")
+                        rect.set_color("#3498db")
                     elif count == 6 or count == 7 or count == 8:
-                        rect.set_color("red")
+                        rect.set_color("#e74c3c")
                     elif count == 12 or count == 13 or count == 14:
-                        rect.set_color("yellow")
+                        rect.set_color("#f1c40f")
 
                     count = count + 1
 
         axe.set_xticks((np.arange(0, 6, 2) + 1 / 4) / 2)
         axe.set_xticklabels(["Secteur 1", "Secteur 2", "Total"], rotation=0)
 
-        l1 = axe.legend(h[:2], ["base", "ajout"], loc=[1.01, 0.5])
+        # Définit la grille
+        axe.grid(True, 'major', 'y', ls='--', lw=.5, c='k', alpha=.3)
 
-        axe.add_artist(l1)
+        #l1 = axe.legend(h[:2], ["base", "ajout"], loc=[1.01, 0.5])
+        #axe.add_artist(l1)
 
         self.canvas.draw()
 

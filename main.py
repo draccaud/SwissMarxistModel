@@ -329,7 +329,7 @@ class MainWidget(QWidget):
         # Bouton info
         btnInfo = QPushButton(self)
         btnInfo.setIcon(QIcon("information.png"))
-        btnInfo.clicked.connect(self.plot_clustered_stacked)
+        btnInfo.clicked.connect(self.openParamWidget)
         topLayout.addWidget(btnInfo)
 
         # Bouton reset
@@ -364,7 +364,7 @@ class MainWidget(QWidget):
         # Bouton étape par étape
         btnNextSmallStep = QPushButton(self)
         btnNextSmallStep.setIcon(QIcon("arrow-right.png"))
-        # btnNextSmallStep.clicked.connect(self.btnNextSmallStep)
+        btnNextSmallStep.clicked.connect(self.plot_clustered_stacked)
         bottomLayout.addWidget(btnNextSmallStep)
 
         # Bouton prochaine année

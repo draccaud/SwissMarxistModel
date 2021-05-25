@@ -12,7 +12,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 # Variables globales
 current_year = 1
-production_records = [0]
+production_records = []
 # Composition organique des secteurs 1 et 2
 organic_composition_1 = 2.22
 organic_composition_2 = 2.22
@@ -71,13 +71,15 @@ def plotSectors(figure, data):
     # sectorsGraph.legend()
 
 
-def CalcYear():
+def CalcFirstYear():
+    """
+    Calcul les données de la première année
+    :return:
+    """
     # Total du secteur 1
     total1 = production_total / (sectors_ratio + 1) * sectors_ratio
-    # Diviseur permettant d'effectuer le prochain calcul
-    dividor = organic_composition_1 + rate_of_exploitation_1 + 1
     # Capital constant du secteur 1
-    constantCapital1 = organic_composition_1 / dividor * total1
+    constantCapital1 = organic_composition_1 / (organic_composition_1 + rate_of_exploitation_1 + 1) * total1
     # Capital variable du secteur 1
     variableCapital1 = constantCapital1 / organic_composition_1
     # Surplus du secteur 1
@@ -85,10 +87,8 @@ def CalcYear():
 
     # Total du secteur 2
     total2 = production_total / (sectors_ratio + 1)
-    # Diviseur permettant d'effectuer le prochain calcul
-    dividor = organic_composition_2 + rate_of_exploitation_2 + 1
     # Capital constant du secteur 2
-    constantCapital2 = organic_composition_2 / dividor * total2
+    constantCapital2 = organic_composition_2 / (organic_composition_2 + rate_of_exploitation_2 + 1) * total2
     # Capital variable du secteur 2
     variableCapital2 = constantCapital2 / organic_composition_2
     # Surplus du secteur 2
@@ -101,46 +101,61 @@ def CalcYear():
     # Surplus total
     surplusTotal = surplus1 + surplus2
 
-    # Accumulation totale
-    Acc_t = total1 - (constantCapital1 + constantCapital2)
+    # Accumulation
+    accumulation = total1 - (constantCapital1 + constantCapital2)
 
-    resultsTab = [
-        [constantCapital1, variableCapital1, surplus1, total1, constantCapital2, variableCapital2, surplus2, total2,
-         constantCapitalTotal, variableCapitalTotal, surplusTotal, production_total, Acc_t]]
-    return resultsTab
+    global production_records
+    production_records = [[constantCapital1, variableCapital1, surplus1, total1, constantCapital2, variableCapital2,
+                           surplus2, total2, constantCapitalTotal, variableCapitalTotal, surplusTotal, production_total,
+                           accumulation]]
 
 
-def caclanneesuivante(Tab):
+def CalcNextYear():
+    """
+    Calcul les données de l'année suivante
+    :return:
+    """
+    # Récupère la variable globale
     global current_year
 
     # Récupère l'accumulation de l'année précédente
-    latsYearAccumulation = Tab[current_year - 2][12]
+    latsYearAccumulation = production_records[current_year - 2][12]
 
     # Capital constant du secteur 1
-    constantCapital1 = Tab[current_year - 2][0] + (
-            latsYearAccumulation * (organic_composition_1 / (organic_composition_1 + 1)))
-    # Capital varibale du secteur 2
+    constantCapital1 = production_records[current_year - 2][0] + (latsYearAccumulation * (organic_composition_1 /
+                                                                                          (organic_composition_1 + 1)))
+    # Capital variable du secteur 2
     variableCapital1 = constantCapital1 / organic_composition_1
     # Surplus du secteur 1
     surplus1 = variableCapital1 * rate_of_exploitation_1
     # Total du secteur 1
     sector1Total = constantCapital1 + variableCapital1 + surplus1
 
-    constantCapital2 = Tab[(current_year - 2)][4] + latsYearAccumulation - (constantCapital1 - Tab[current_year - 2][0])
+    # Capital constant du secteur 1
+    constantCapital2 = production_records[(current_year - 2)][4] + latsYearAccumulation - \
+                       (constantCapital1 - production_records[current_year - 2][0])
+    # Capital variable du secteur 2
     variableCapital2 = constantCapital2 / organic_composition_2
+    # Surplus du secteur 2
     surplus2 = variableCapital2 * rate_of_exploitation_2
+    # Total du secteur 2
     sector2Total = constantCapital2 + variableCapital2 + surplus2
 
+    # Total du capital constant
     constantCapitalTotal = constantCapital1 + constantCapital2
+    # Total du capital variable
     variableCapitalTotal = variableCapital1 + variableCapital2
+    # Surplus total
     surplusTotal = surplus1 + surplus2
-    sectorsTotal = constantCapitalTotal + variableCapitalTotal + surplusTotal
+    # Total de la production
+    productionTotal = constantCapitalTotal + variableCapitalTotal + surplusTotal
 
-    Acc = sector1Total - constantCapitalTotal
-    NewRow = [constantCapital1, variableCapital1, surplus1, sector1Total, constantCapital2, variableCapital2, surplus2,
-              sector2Total, constantCapitalTotal, variableCapitalTotal, surplusTotal, sectorsTotal, Acc]
-    Tab.append(NewRow)
-    return Tab
+    # Accumulation
+    accumulation = sector1Total - constantCapitalTotal
+
+    production_records.append([constantCapital1, variableCapital1, surplus1, sector1Total, constantCapital2,
+                               variableCapital2, surplus2, sector2Total, constantCapitalTotal, variableCapitalTotal,
+                               surplusTotal, productionTotal, accumulation])
 
 
 class ParamWidget(QWidget):
@@ -386,7 +401,7 @@ class MainWidget(QWidget):
         """
         # Remet à zéro les paramètres
         global production_records
-        production_records = [0]
+        production_records = []
         global organic_composition_1
         organic_composition_1 = 2.22
         global organic_composition_2
@@ -421,53 +436,68 @@ class MainWidget(QWidget):
         # Remise à zéro
         self.figure.clf()
 
+        # Si année, calcule les données de la première année
         if current_year == 1:
-            production_records = CalcYear()
+            CalcFirstYear()
 
-        GraphData = [[production_records[current_year - 1][0], production_records[current_year - 1][1],
-                      production_records[current_year - 1][2]],
-                     [production_records[current_year - 1][4], production_records[current_year - 1][5],
-                      production_records[current_year - 1][6]],
-                     [production_records[current_year - 1][8], production_records[current_year - 1][9],
-                      production_records[current_year - 1][10]]]
+        # Récupère les données à afficher
+        GraphData = np.array([[production_records[current_year - 1][0], production_records[current_year - 1][1],
+                               production_records[current_year - 1][2]], [production_records[current_year - 1][4],
+                                                                          production_records[current_year - 1][5],
+                                                                          production_records[current_year - 1][6]],
+                              [production_records[current_year - 1][8], production_records[current_year - 1][9],
+                               production_records[current_year - 1][10]]])
 
-        Tot_1_t = production_records[current_year - 1][3]
-        Tot_2_t = production_records[current_year - 1][7]
+        # Appelle la fonction qui dessine le grphique des secteurs
+        plotSectors(self.figure, GraphData)
 
-        plotSectors(self.figure, np.array(GraphData))
-
+        # Dessine le graph des totaux
         totalsGraph = self.figure.add_subplot(212)
-        squarify.plot(sizes=[Tot_1_t, Tot_2_t], label=['Total S1', 'Total S2'], color=['#3498db', '#e74c3c'], alpha=.8,
-                      ax=totalsGraph)
+        squarify.plot(sizes=[production_records[current_year - 1][3], production_records[current_year - 1][7]],
+                      label=['Total S1', 'Total S2'], color=['#3498db', '#e74c3c'], alpha=.8, ax=totalsGraph)
+        # Enlève les axes du graphique
         totalsGraph.axis('off')
 
+        #Mets à jour le canevas
         self.canvas.draw()
 
     def next(self):
+        """
+        Passe à l'année suivante
+        :return:
+        """
+        # Récupère la variable globale
         global current_year
-        global production_records
+        # Avance d'une année
         current_year = current_year + 1
 
-        # Si année une
-        if not production_records[current_year - 2]:
-            None
-        else:
-            production_records = caclanneesuivante(production_records)
+        global production_records
+
+        # Si pas année une
+        if production_records[current_year - 2]:
+            CalcNextYear()
 
         # Active le bouton permettant de revenir en arrière
         mainWidget.btnPrevious.setEnabled(True)
         self.plotGraphs()
 
     def previous(self):
+        """
+        Passe à l'année précédente
+        :return:
+        """
+        # Récupère la variable global
         global current_year
 
-        # Si on retourne à la première année, désactive le bouton permettant de revenir en arrière
-        if current_year == 2:
-            mainWidget.btnPrevious.setEnabled(False)
-
-        # Ne retourne en arrière que si l'année actuelle n'est pas la première
+        # Si l'année actuelle n'est pas la première
         if current_year > 1:
+            # Recule d'une année
             current_year = current_year - 1
+
+            # Si on retourne à la première année, désactive le bouton de retour en arrière
+            if current_year == 1:
+                mainWidget.btnPrevious.setEnabled(False)
+
             self.plotGraphs()
 
     def plot_clustered_stacked(self, dfall=[], **kwargs):
@@ -530,8 +560,6 @@ class MainWidget(QWidget):
         totalsGraph.axis('off')
 
         self.canvas.draw()
-
-        return axe
 
 
 app = QApplication(sys.argv)

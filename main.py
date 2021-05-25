@@ -3,6 +3,7 @@ import matplotlib
 import matplotlib.figure
 import numpy as np
 import pandas as pd
+from enum import Enum
 import squarify
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget, QPushButton, QApplication, QLabel, QLineEdit, QVBoxLayout, QHBoxLayout, \
@@ -12,8 +13,6 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 # Variables globales
 current_year = 1
 production_records = [0]
-# Mode d'accumulation [A changer en variable XXXX pour rendre plus propre]
-accumulation_mode = 0
 # Composition organique des secteurs 1 et 2
 organic_composition_1 = 2.22
 organic_composition_2 = 2.22
@@ -22,6 +21,17 @@ rate_of_exploitation_1 = 0.35
 rate_of_exploitation_2 = 0.35
 sectors_ratio = 1.72
 production_total = 1496
+
+
+# Modes d'accumulation
+class AccumulationMode(Enum):
+    BALANCED = 0
+    CONSTANT_CAPITAL_MAXIMISATION = 1
+    VARIABLE_CAPITAL_MAXIMISATION = 2
+
+
+# Mode d'accumulation actuelle
+accumulation_mode = AccumulationMode.BALANCED
 
 
 def plotSectors(figure, data):
@@ -93,18 +103,7 @@ def CalcYear():
 
     # Accumulation totale
     Acc_t = total1 - (constantCapital1 + constantCapital2)
-    # """""
-    # #On convertit tout en int
-    # C_1_t = int(C_1_t)
-    # V_1_t = int(V_1_t)
-    # S_1_t = int(S_1_t)
-    # C_2_t = int(C_2_t)
-    # V_2_t = int(V_2_t)
-    # S_2_t = int(S_2_t)
-    # C_3_t = int(C_3_t)
-    # V_3_t = int(V_3_t)
-    # S_3_t = int(S_3_t)
-    # """""
+
     resultsTab = [
         [constantCapital1, variableCapital1, surplus1, total1, constantCapital2, variableCapital2, surplus2, total2,
          constantCapitalTotal, variableCapitalTotal, surplusTotal, production_total, Acc_t]]
@@ -137,30 +136,12 @@ def caclanneesuivante(Tab):
     surplusTotal = surplus1 + surplus2
     sectorsTotal = constantCapitalTotal + variableCapitalTotal + surplusTotal
 
-    # Calcule des C des années précédente pour l'accumulation total
-    # Accumulation = Tab[(Annee - 2)][12]
-    # for i in range(len(Tab) - 1, -1, -1):
-    #   Accumulation = Accumulation - Tab[i][0]
-
     Acc = sector1Total - constantCapitalTotal
     NewRow = [constantCapital1, variableCapital1, surplus1, sector1Total, constantCapital2, variableCapital2, surplus2,
               sector2Total, constantCapitalTotal, variableCapitalTotal, surplusTotal, sectorsTotal, Acc]
     Tab.append(NewRow)
     return Tab
 
-
-def gettotal(TabResultats):
-    Total = 0
-    for i in range(len(TabResultats)):
-        Total = Total + TabResultats[i]
-    return Total
-
-
-# def dynemisesizeaquar(value, total):
-#     AffValue = value / total
-#     AffPro = (1 - AffValue) / 3
-#     AffichageDynamique = [AffPro, AffValue, AffPro, AffPro]
-#     return AffichageDynamique
 
 class ParamWidget(QWidget):
     """
@@ -217,11 +198,13 @@ class ParamWidget(QWidget):
 
         # Mode d'accumulation
         cbAccumulationMode = QComboBox()
-        cbAccumulationMode.addItem("Équilibré", 0)
-        cbAccumulationMode.addItem("Maximisation du capital constant", 1)
-        cbAccumulationMode.addItem("Maximisation du capital variable", 2)
+        cbAccumulationMode.addItem("Équilibré", AccumulationMode.BALANCED.value)
+        cbAccumulationMode.addItem("Maximisation du capital constant",
+                                   AccumulationMode.CONSTANT_CAPITAL_MAXIMISATION.value)
+        cbAccumulationMode.addItem("Maximisation du capital variable",
+                                   AccumulationMode.VARIABLE_CAPITAL_MAXIMISATION.value)
         # Affiche de base le mode d'accumulation actuelle
-        cbAccumulationMode.setCurrentIndex(accumulation_mode)
+        cbAccumulationMode.setCurrentIndex(accumulation_mode.value)
         paramLayout.addRow(QLabel("Mode d'accumulation :"), cbAccumulationMode)
 
         # Ligne des boutons
@@ -235,7 +218,7 @@ class ParamWidget(QWidget):
         buttonsLayout.addWidget(btnCancel)
 
         # Bouton enregistrer
-        btnSave = QPushButton(self)
+        btnSave = QPushButton()
         btnSave.setIcon(QIcon("save.png"))
         buttonsLayout.addWidget(btnSave)
         btnSave.clicked.connect(lambda: self.Save(editOrganicComposition1.text(), editOrganicComposition2.text(),
@@ -280,7 +263,7 @@ class ParamWidget(QWidget):
             rateOfExploitation2 = float(rateOfExploitation2)
             sectorsRatio = float(sectorsRatio)
             productionTotal = float(productionTotal)
-            accumulation_mode = int(accumulationMode)
+            accumulation_mode = AccumulationMode(accumulationMode)
         except ValueError:
             # Si une exception est soulevée, affiche une erreur
             QMessageBox.about(self, "Erreur", "Saisie invalide")
@@ -393,7 +376,6 @@ class MainWidget(QWidget):
         Instancie, puis affiche une fenêtre de modification des paramètres
         :return:
         """
-
         paramWidget = ParamWidget()
         paramWidget.show()
 
@@ -452,15 +434,7 @@ class MainWidget(QWidget):
         Tot_1_t = production_records[current_year - 1][3]
         Tot_2_t = production_records[current_year - 1][7]
 
-        # Dessine le graphique des secteurs
-        # GraphData = [DataYear[Annee - 1][0], DataYear[Annee - 1][1],DataYear[Annee - 1][2],DataYear[Annee - 1][4],DataYear[Annee - 1][5],DataYear[Annee - 1][6], DataYear[Annee - 1][8],DataYear[Annee - 1][9],DataYear[Annee - 1][10]]
-
         plotSectors(self.figure, np.array(GraphData))
-
-        # Dessine le graphique des totaux
-        # Tot_1_t = DataYear[Annee - 1][3]
-        # Tot_2_t = DataYear[Annee - 1][7]
-        # Tot_3_t = gettotal(DataYearOne[2])
 
         totalsGraph = self.figure.add_subplot(212)
         squarify.plot(sizes=[Tot_1_t, Tot_2_t], label=['Total S1', 'Total S2'], color=['#3498db', '#e74c3c'], alpha=.8,

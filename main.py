@@ -1,37 +1,26 @@
 import sys
+
 import matplotlib
 import matplotlib.figure
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from enum import Enum
 import squarify
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QWidget, QPushButton, QApplication, QLabel, QLineEdit, QVBoxLayout, QHBoxLayout, \
-    QFormLayout, QMessageBox, QComboBox
+from PyQt5.QtGui import QIntValidator, QIcon
+from PyQt5.QtWidgets import QWidget, QGridLayout, QPushButton, QApplication, QLabel, QInputDialog, QLineEdit, \
+    QVBoxLayout, QHBoxLayout, QFormLayout
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 # Variables globales
-current_year = 1
-production_records = []
-# Composition organique des secteurs 1 et 2
-organic_composition_1 = 2.22
-organic_composition_2 = 2.22
-# Taux d'exploitation des secteurs 1 et 2
-rate_of_exploitation_1 = 0.35
-rate_of_exploitation_2 = 0.35
-sectors_ratio = 1.72
-production_total = 1496
-
-
-# Modes d'accumulation
-class AccumulationMode(Enum):
-    BALANCED = 0
-    CONSTANT_CAPITAL_MAXIMISATION = 1
-    VARIABLE_CAPITAL_MAXIMISATION = 2
-
-
-# Mode d'accumulation actuelle
-accumulation_mode = AccumulationMode.BALANCED
+DataYear = [0]
+Compo_org_1 = 2.22
+Compo_org_2 = 2.22
+Taux_expl_1 = 0.35
+Taux_expl_2 = 0.35
+Total_t = 1496
+RapportSecteurs = 1.72
+Annee = 1
+CountSmallStep = 0
 
 
 def plotSectors(figure, data):
@@ -54,6 +43,8 @@ def plotSectors(figure, data):
     sectorsGraph.bar(x + width, data[:, 1], width, color='#e74c3c', label='Capital variable (V)')
     sectorsGraph.bar(x + (2 * width), data[:, 2], width, color='#f1c40f', label='Surplus (S)')
 
+
+
     # Définit les légendes en X
     sectorsGraph.set_xticks(x + width + width / 2)
     sectorsGraph.set_xticklabels(['Secteur 1', 'Secteur 2', 'Total'])
@@ -62,101 +53,113 @@ def plotSectors(figure, data):
     sectorsGraph.set_ylabel('Milliards de CHF')
 
     # titre
-    sectorsGraph.set_title('Année ' + str(current_year))
+    sectorsGraph.set_title('Année ' + str(Annee))
 
     # Définit la grille
     sectorsGraph.grid(True, 'major', 'y', ls='--', lw=.5, c='k', alpha=.3)
 
     # Affiche les légendes des barres
-    # sectorsGraph.legend()
+    #sectorsGraph.legend()
 
+def CalcYear():
+    #Total du secteur 1
+    total1 = (Total_t / (RapportSecteurs + 1)) * RapportSecteurs
+    #Diviseur permettant d'effectuer le prochain calcul
+    dividor = Compo_org_1 + Taux_expl_1 + 1
+    #Capital constant du secteur 1
+    constantCapital1 = Compo_org_1 / dividor * total1
+    #Capital variable du secteur 1
+    variableCapital1 = constantCapital1 / Compo_org_1
+    #Surplus du secteur 1
+    surplus1 = variableCapital1 * Taux_expl_1
 
-def CalcFirstYear():
-    """
-    Calcul les données de la première année
-    :return:
-    """
-    # Total du secteur 1
-    total1 = production_total / (sectors_ratio + 1) * sectors_ratio
-    # Capital constant du secteur 1
-    constantCapital1 = organic_composition_1 / (organic_composition_1 + rate_of_exploitation_1 + 1) * total1
-    # Capital variable du secteur 1
-    variableCapital1 = constantCapital1 / organic_composition_1
-    # Surplus du secteur 1
-    surplus1 = variableCapital1 * rate_of_exploitation_1
-
-    # Total du secteur 2
-    total2 = production_total / (sectors_ratio + 1)
-    # Capital constant du secteur 2
-    constantCapital2 = organic_composition_2 / (organic_composition_2 + rate_of_exploitation_2 + 1) * total2
-    # Capital variable du secteur 2
-    variableCapital2 = constantCapital2 / organic_composition_2
+    #Total du secteur 2
+    total2 = Total_t / (RapportSecteurs + 1)
+    #Diviseur permettant d'effectuer le prochain calcul
+    dividor = Compo_org_2 + Taux_expl_2 + 1
+    #Capital constant du secteur 2
+    constantCapital2 = Compo_org_2 / dividor * total2
+    #Capital variable du secteur 2
+    variableCapital2 = constantCapital2 / Compo_org_2
     # Surplus du secteur 2
-    surplus2 = variableCapital2 * rate_of_exploitation_2
+    surplus2 = variableCapital2 * Taux_expl_2
 
-    # Total de capital constant
+    #Total de capital constant
     constantCapitalTotal = constantCapital1 + constantCapital2
     # Total de capital variable
     variableCapitalTotal = variableCapital1 + variableCapital2
-    # Surplus total
+    #Surplus total
     surplusTotal = surplus1 + surplus2
 
-    # Accumulation
-    accumulation = total1 - (constantCapital1 + constantCapital2)
+    #Accumulation totale
+    Acc_t = total1 - (constantCapital1 + constantCapital2)
+    # """""
+    # #On convertit tout en int
+    # C_1_t = int(C_1_t)
+    # V_1_t = int(V_1_t)
+    # S_1_t = int(S_1_t)
+    # C_2_t = int(C_2_t)
+    # V_2_t = int(V_2_t)
+    # S_2_t = int(S_2_t)
+    # C_3_t = int(C_3_t)
+    # V_3_t = int(V_3_t)
+    # S_3_t = int(S_3_t)
+    # """""
+    resultsTab = [[constantCapital1, variableCapital1, surplus1, total1, constantCapital2, variableCapital2, surplus2, total2, constantCapitalTotal, variableCapitalTotal, surplusTotal, Total_t, Acc_t]]
+    return resultsTab
 
-    global production_records
-    production_records = [[constantCapital1, variableCapital1, surplus1, total1, constantCapital2, variableCapital2,
-                           surplus2, total2, constantCapitalTotal, variableCapitalTotal, surplusTotal, production_total,
-                           accumulation]]
+def caclanneesuivante(Tab):
+    global Annee
+    previousAccumulation = 0
+    # Calcul du total des années précédentes
+    if range(len(Tab)) == 0:
+        previousAccumulation = (Tab[0] + Tab[1] + Tab[2]) - (Tab[0] + Tab[4])
+    else:
+        #for i in range(len(Tab)):
+            #previousAccumulation = (Tab[i][0] + Tab[i][1] + Tab[i][2]) - (Tab[i][0] + Tab[i][4])
+        previousAccumulation = (Tab[Annee-2][0] + Tab[Annee-2][1] + Tab[Annee-2][2]) - (Tab[Annee-2][0] + Tab[Annee-2][4])
 
-
-def CalcNextYear():
-    """
-    Calcul les données de l'année suivante
-    :return:
-    """
-    # Récupère la variable globale
-    global current_year
-
-    # Récupère l'accumulation de l'année précédente
-    latsYearAccumulation = production_records[current_year - 2][12]
-
-    # Capital constant du secteur 1
-    constantCapital1 = production_records[current_year - 2][0] + (latsYearAccumulation * (organic_composition_1 /
-                                                                                          (organic_composition_1 + 1)))
-    # Capital variable du secteur 2
-    variableCapital1 = constantCapital1 / organic_composition_1
-    # Surplus du secteur 1
-    surplus1 = variableCapital1 * rate_of_exploitation_1
-    # Total du secteur 1
+    #Capital constant du secteur 1
+    constantCapital1 = Tab[Annee-2][0] + (previousAccumulation * (Compo_org_1 / (Compo_org_1 + 1)))
+    #Capital varibale du secteur 2
+    variableCapital1 = constantCapital1 / Compo_org_1
+    #Surplus du secteur 1
+    surplus1 = variableCapital1 * Taux_expl_1
+    #Total du secteur 1
     sector1Total = constantCapital1 + variableCapital1 + surplus1
 
-    # Capital constant du secteur 1
-    constantCapital2 = production_records[(current_year - 2)][4] + latsYearAccumulation - \
-                       (constantCapital1 - production_records[current_year - 2][0])
-    # Capital variable du secteur 2
-    variableCapital2 = constantCapital2 / organic_composition_2
-    # Surplus du secteur 2
-    surplus2 = variableCapital2 * rate_of_exploitation_2
-    # Total du secteur 2
+    constantCapital2 = Tab[(Annee-2)][4] + previousAccumulation - (constantCapital1 - Tab[Annee-2][0])
+    variableCapital2 = constantCapital2 / Compo_org_2
+    surplus2 = variableCapital2 * Taux_expl_2
     sector2Total = constantCapital2 + variableCapital2 + surplus2
 
-    # Total du capital constant
-    constantCapitalTotal = constantCapital1 + constantCapital2
-    # Total du capital variable
+    constantCapitalTotal = constantCapital1 +constantCapital2
     variableCapitalTotal = variableCapital1 + variableCapital2
-    # Surplus total
     surplusTotal = surplus1 + surplus2
-    # Total de la production
-    productionTotal = constantCapitalTotal + variableCapitalTotal + surplusTotal
+    sectorsTotal = constantCapitalTotal + variableCapitalTotal + surplusTotal
 
-    # Accumulation
-    accumulation = sector1Total - constantCapitalTotal
+    # Calcule des C des années précédente pour l'accumulation total
+    Accumulation = Tab[(Annee - 2)][12]
+    for i in range(len(Tab) - 1, -1, -1):
+        Accumulation = Accumulation - Tab[i][0]
 
-    production_records.append([constantCapital1, variableCapital1, surplus1, sector1Total, constantCapital2,
-                               variableCapital2, surplus2, sector2Total, constantCapitalTotal, variableCapitalTotal,
-                               surplusTotal, productionTotal, accumulation])
+    Acc = sector1Total - constantCapitalTotal
+    NewRow = [constantCapital1, variableCapital1, surplus1, sector1Total, constantCapital2, variableCapital2, surplus2, sector2Total, constantCapitalTotal, variableCapitalTotal, surplusTotal, sectorsTotal, Acc]
+    Tab.append(NewRow)
+    return Tab
 
+def gettotal(TabResultats):
+    Total = 0
+    for i in range(len(TabResultats)):
+        Total = Total + TabResultats[i]
+    return Total
+
+
+# def dynemisesizeaquar(value, total):
+#     AffValue = value / total
+#     AffPro = (1 - AffValue) / 3
+#     AffichageDynamique = [AffPro, AffValue, AffPro, AffPro]
+#     return AffichageDynamique
 
 class ParamWidget(QWidget):
     """
@@ -172,74 +175,60 @@ class ParamWidget(QWidget):
 
     def initParamWidget(self):
         """
-        Instancie la fenêtre des paramètres
+        Initialise la fenêtre des paramètres
         :return:
         """
-        # Définit la taille de la fenêtre
+        # Taille du widget
         self.setGeometry(100, 100, 800, 480)
 
-        # Layout principal
-        mainLayout = QVBoxLayout()
-        self.setLayout(mainLayout)
-
-        # Layout des paramètres
+        #Layout des paramètres
         paramLayout = QFormLayout()
-        mainLayout.addLayout(paramLayout)
-        # mainLayout.setContentsMargins(150, 100, 150, 100)
+        self.setLayout(paramLayout)
+        paramLayout.setContentsMargins(150, 100, 150, 0)
 
-        # Taux d'exploitation du secteur 1
-        editRateOfExploitation1 = QLineEdit(str(rate_of_exploitation_1))
-        paramLayout.addRow(QLabel("Taux d'exploitation du secteur 1 :"), editRateOfExploitation1)
+        #Taux d'exploitation du secteur 1
+        labExp1 = QLabel("Taux d'exploitation du secteur 1 :", self)
+        ediExp1 = QLineEdit(str(Taux_expl_1))
+        paramLayout.addRow(labExp1, ediExp1)
 
-        # Taux d'exploitation du secteur 2
-        editRateOfExploitation2 = QLineEdit(str(rate_of_exploitation_2))
-        paramLayout.addRow(QLabel("Taux d'exploitation du secteur 2 :"), editRateOfExploitation2)
+        #Taux d'exploitation du secteur 2
+        labExp2 = QLabel("Taux d'exploitation du secteur 2 :", self)
+        ediExp2 = QLineEdit(str(Taux_expl_2))
+        paramLayout.addRow(labExp2, ediExp2)
 
-        # Composition organique du secteur 1
-        editOrganicComposition1 = QLineEdit(str(organic_composition_1))
-        paramLayout.addRow(QLabel("Composition organique du secteur 1 :"), editOrganicComposition1)
+        #Composition organique du secteur 1
+        labOrga1 = QLabel("Composition organique du secteur 1 :", self)
+        ediOrga1 = QLineEdit(str(Compo_org_1))
+        paramLayout.addRow(labOrga1, ediOrga1)
 
-        # Composition organique du secteur 2
-        editOrganicComposition2 = QLineEdit(str(organic_composition_2))
-        paramLayout.addRow(QLabel("Composition organique du secteur 2 :"), editOrganicComposition2)
+        #Composition organique du secteur 2
+        labOrga2 = QLabel("Composition organique du secteur 2 :", self)
+        ediOrga2 = QLineEdit(str(Compo_org_2))
+        paramLayout.addRow(labOrga2, ediOrga2)
 
-        # Rapport entre les secteurs
-        editSectorsRatio = QLineEdit(str(sectors_ratio))
-        paramLayout.addRow(QLabel("Rapports entre les secteurs :"), editSectorsRatio)
+        #Rapport secteurs 1 et 2
+        labRapports = QLabel("Rapports entre les secteurs :", self)
+        ediRapports = QLineEdit(str(RapportSecteurs))
+        paramLayout.addRow(labRapports, ediRapports)
 
-        # Total de la production
-        editProductionTotal = QLineEdit(str(production_total))
-        paramLayout.addRow(QLabel("Total :"), editProductionTotal)
-
-        # Mode d'accumulation
-        cbAccumulationMode = QComboBox()
-        cbAccumulationMode.addItem("Équilibré", AccumulationMode.BALANCED.value)
-        cbAccumulationMode.addItem("Maximisation du capital constant",
-                                   AccumulationMode.CONSTANT_CAPITAL_MAXIMISATION.value)
-        cbAccumulationMode.addItem("Maximisation du capital variable",
-                                   AccumulationMode.VARIABLE_CAPITAL_MAXIMISATION.value)
-        # Affiche de base le mode d'accumulation actuelle
-        cbAccumulationMode.setCurrentIndex(accumulation_mode.value)
-        paramLayout.addRow(QLabel("Mode d'accumulation :"), cbAccumulationMode)
-
-        # Ligne des boutons
-        buttonsLayout = QHBoxLayout()
-        mainLayout.addLayout(buttonsLayout)
+        #Total
+        labTotal = QLabel("Total :", self)
+        ediTotal = QLineEdit(str(Total_t))
+        paramLayout.addRow(labTotal, ediTotal)
 
         # Bouton annuler
-        btnCancel = QPushButton()
-        btnCancel.setIcon(QIcon("cancel.png"))
+        btnCancel = QPushButton(self)
         btnCancel.clicked.connect(self.Cancel)
-        buttonsLayout.addWidget(btnCancel)
+        btnCancel.setIcon(QIcon("cancel.png"))
 
         # Bouton enregistrer
-        btnSave = QPushButton()
+        btnSave = QPushButton(self)
         btnSave.setIcon(QIcon("save.png"))
-        buttonsLayout.addWidget(btnSave)
-        btnSave.clicked.connect(lambda: self.Save(editOrganicComposition1.text(), editOrganicComposition2.text(),
-                                                  editRateOfExploitation1.text(), editRateOfExploitation2.text(),
-                                                  editSectorsRatio.text(), editProductionTotal.text(),
-                                                  cbAccumulationMode.currentData()))
+        btnSave.clicked.connect(
+            lambda: self.Save(ediOrga1.text(), ediOrga2.text(), ediExp1.text(), ediExp2.text(), ediRapports.text(),
+                              ediTotal.text()))
+
+        paramLayout.addRow(btnCancel, btnSave)
 
     def Cancel(self):
         """
@@ -248,60 +237,41 @@ class ParamWidget(QWidget):
         """
         self.hide()
 
-    def Save(self, organicComposition1, organicComposition2, rateExploitation1, rateOfExploitation2, sectorsRatio,
-             productionTotal, accumulationMode):
+    def Save(self, orga1, orga2, expl1, expl2, sectors, total):
         """
         Enregistre les nouvelles valeurs des paramètres
-        :param organicComposition1: Nouvelle composition organique du secteur 1
-        :param organicComposition2: Nouvelle composition organique du secteur 2
-        :param rateExploitation1: Nouveaux taux d'exploitation du secteur 1
-        :param rateOfExploitation2: Nouveaux taux d'exploitation du secteur 2
-        :param sectorsRatio: Nouveau rapport entre les secteurs
-        :param productionTotal: Nouveau total de production
-        :param accumulationMode: Nouveau mode de production
+        :param orga1: Nouvelle composition organique du secteur 1
+        :param orga2: Nouvelle composition organique du secteur 2
+        :param expl1: Nouveaux taux d'exploitation du secteur 1
+        :param expl2: Nouveaux taux d'exploitation du secteur 2
+        :param sectors: Nouveau rapport entre les secteurs
+        :param total: Nouveau total
         :return:
         """
-        # Récupère les variables globales
-        global organic_composition_1
-        global organic_composition_2
-        global rate_of_exploitation_1
-        global rate_of_exploitation_2
-        global sectors_ratio
-        global production_total
-        global accumulation_mode
+        # Modifie les valeurs des paramètres globaux
+        global Compo_org_1
+        Compo_org_1 = float(orga1)
 
-        try:
-            # Tente de convertir en float les inputs
-            organicComposition1 = float(organicComposition1)
-            organicComposition2 = float(organicComposition2)
-            rateExploitation1 = float(rateExploitation1)
-            rateOfExploitation2 = float(rateOfExploitation2)
-            sectorsRatio = float(sectorsRatio)
-            productionTotal = float(productionTotal)
-            accumulation_mode = AccumulationMode(accumulationMode)
-        except ValueError:
-            # Si une exception est soulevée, affiche une erreur
-            QMessageBox.about(self, "Erreur", "Saisie invalide")
-        else:
-            # Si les inputs sont supérieurs à zéro
-            if organicComposition1 > 0 and organicComposition2 > 0 and rateExploitation1 > 0 \
-                    and rateOfExploitation2 > 0 and sectorsRatio > 0 and productionTotal > 0:
-                # Actualise les variables globales
-                organic_composition_1 = organicComposition1
-                organic_composition_2 = organicComposition2
-                rate_of_exploitation_1 = rateExploitation1
-                rate_of_exploitation_2 = rateOfExploitation2
-                sectors_ratio = sectorsRatio
-                production_total = productionTotal
+        global Compo_org_2
+        Compo_org_2 = float(orga2)
 
-                # Réactualise les graphiques
-                mainWidget.plotGraphs()
-                # Ferme le widget des paramètres
-                self.hide()
-            else:
-                # Sinon affiche une erreur
-                QMessageBox.about(self, "Erreur", "Saisie inférieur à zéro")
+        global Taux_expl_1
+        Taux_expl_1 = float(expl1)
 
+        global Taux_expl_2
+        Taux_expl_2 = float(expl2)
+
+        global RapportSecteurs
+        RapportSecteurs = float(sectors)
+
+        global Total_t
+        Total_t = float(total)
+
+        # Réactualise les graphiques
+        mainWidget.plotGraphs()
+
+        # Ferme le widget des paramètres
+        self.hide()
 
 class MainWidget(QWidget):
     """
@@ -313,114 +283,108 @@ class MainWidget(QWidget):
         Constructeur de la fenêtre principale
         """
         super(MainWidget, self).__init__()
-        # Instancie le bouton previous ici afin de pouvoir le rendre (in)actif depuis une méthode
-        self.btnPrevious = QPushButton()
-        # Instancie la figure et le canevas ici afin de pouvoir les atteindre depuis une méthode
-        self.figure = matplotlib.figure.Figure()
-        self.canvas = FigureCanvas(self.figure)
-
         self.initMainWidget()
 
     def initMainWidget(self):
         """
-        Instancie la fenêtre principale
+        Initialise la fenêtre principale
         :return:
         """
-        # Définit la taille de la fenêtre
         self.setGeometry(100, 100, 800, 480)
 
-        # Layout principal
+        #Layout principal
         mainLayout = QVBoxLayout()
         self.setLayout(mainLayout)
 
-        # Haut de la fenêtre
+        #Haut de la fenêtre
         topLayout = QHBoxLayout()
-        mainLayout.addLayout(topLayout)
 
-        # Bouton info
-        btnInfo = QPushButton()
+        #Bouton info
+        btnInfo = QPushButton(self)
         btnInfo.setIcon(QIcon("info.png"))
-        btnInfo.clicked.connect(self.openParamWidget)
+        btnInfo.clicked.connect(self.plot_clustered_stacked)
         topLayout.addWidget(btnInfo)
 
-        # Bouton reset
-        btnReset = QPushButton()
+        #Bouton reset
+        btnReset = QPushButton(self)
         btnReset.setIcon(QIcon("reset.png"))
         btnReset.clicked.connect(self.reset)
         topLayout.addWidget(btnReset)
 
-        # Bouton paramètres
-        btnParam = QPushButton()
-        btnParam.setIcon(QIcon("param.png"))
+        #Bouton paramètres
+        btnParam = QPushButton(self)
+        btnParam.setIcon(QIcon("parameters.png"))
         btnParam.clicked.connect(self.openParamWidget)
         topLayout.addWidget(btnParam)
 
-        # Ajoute le canevas au layout principal
+        mainLayout.addLayout(topLayout)
+
+        #Figure et Canvas acceuilant les graphs
+        self.figure = matplotlib.figure.Figure()
+        self.canvas = FigureCanvas(self.figure)
         mainLayout.addWidget(self.canvas)
 
-        # Layout du bas
+        #Layout du bas
         bottomLayout = QHBoxLayout()
-        mainLayout.addLayout(bottomLayout)
 
-        # Bouton précédent
-        self.btnPrevious.setIcon(QIcon("previous.png"))
-        self.btnPrevious.clicked.connect(self.previous)
-        bottomLayout.addWidget(self.btnPrevious)
-        # Désactive, de base, le bouton
-        self.btnPrevious.setEnabled(False)
+        #Bouton étape précédente
+        btnPreviousStep = QPushButton(self)
+        btnPreviousStep.setIcon(QIcon("previous.png"))
+        btnPreviousStep.clicked.connect(self.previousStep)
+        bottomLayout.addWidget(btnPreviousStep)
 
         # Bouton étape par étape
-        btnStepByStep = QPushButton()
-        btnStepByStep.setIcon(QIcon("stepByStep.png"))
-        btnStepByStep.clicked.connect(self.plot_clustered_stacked)
-        bottomLayout.addWidget(btnStepByStep)
+        btnNextSmallStep = QPushButton(self)
+        btnNextSmallStep.setIcon(QIcon("right-arrow.png"))
+        btnNextSmallStep.clicked.connect(self.btnNextSmallStep)
+        bottomLayout.addWidget(btnNextSmallStep)
 
-        # Bouton suivant
-        btnNext = QPushButton()
-        btnNext.setIcon(QIcon("next.png"))
-        btnNext.clicked.connect(self.next)
-        bottomLayout.addWidget(btnNext)
+        # Bouton prochaine année
+        btnNextStep = QPushButton(self)
+        btnNextStep.setIcon(QIcon("next.png"))
+        btnNextStep.clicked.connect(self.nextStep)
+        bottomLayout.addWidget(btnNextStep)
 
-        # Dessine les graphiques
+        mainLayout.addLayout(bottomLayout)
+
+        #Dessine les graphiques
         self.plotGraphs()
         self.show()
 
-    @staticmethod
-    def openParamWidget():
+    def openParamWidget(self):
         """
         Instancie, puis affiche une fenêtre de modification des paramètres
         :return:
         """
-        paramWidget = ParamWidget()
-        paramWidget.show()
+
+        self.paramWidget = ParamWidget()
+        self.paramWidget.show()
+        # self.hide()
 
     def reset(self):
         """
-        Remet à zéro les paramètres et affiche le graphique initial
+        Remet à zéro les paramètres et affiche le graph initial
         :return:
         """
-        # Remet à zéro les paramètres
-        global production_records
-        production_records = []
-        global organic_composition_1
-        organic_composition_1 = 2.22
-        global organic_composition_2
-        organic_composition_2 = 2.22
-        global rate_of_exploitation_1
-        rate_of_exploitation_1 = 0.35
-        global rate_of_exploitation_2
-        rate_of_exploitation_2 = 0.35
-        global production_total
-        production_total = 1496
-        global sectors_ratio
-        sectors_ratio = 1.72
-        global current_year
-        current_year = 1
+        #Remet à zéro les paramètres
+        global DataYear
+        DataYear = [0]
+        global Compo_org_1
+        Compo_org_1 = 2.22
+        global Compo_org_2
+        Compo_org_2 = 2.22
+        global Taux_expl_1
+        Taux_expl_1 = 0.35
+        global Taux_expl_2
+        Taux_expl_2 = 0.35
+        global Total_t
+        Total_t = 1496
+        global RapportSecteurs
+        RapportSecteurs = 1.72
+        global Annee
+        Annee = 1
 
-        # Désactive le bouton previous
-        mainWidget.btnPrevious.setEnabled(False)
-
-        # Dessine le graphique
+        #Dessine le graphique
         self.plotGraphs()
 
     def openInfoWidget(self):
@@ -431,92 +395,109 @@ class MainWidget(QWidget):
         Dessine les graphiques sur la page principale
         :return:
         """
-        global production_records
+        global DataYear
 
         # Remise à zéro
         self.figure.clf()
 
-        # Si année, calcule les données de la première année
-        if current_year == 1:
-            CalcFirstYear()
+        if Annee == 1:
+            DataYear = CalcYear()
 
-        # Récupère les données à afficher
-        GraphData = np.array([[production_records[current_year - 1][0], production_records[current_year - 1][1],
-                               production_records[current_year - 1][2]], [production_records[current_year - 1][4],
-                                                                          production_records[current_year - 1][5],
-                                                                          production_records[current_year - 1][6]],
-                              [production_records[current_year - 1][8], production_records[current_year - 1][9],
-                               production_records[current_year - 1][10]]])
+        GraphData = [[DataYear[Annee - 1][0], DataYear[Annee - 1][1], DataYear[Annee - 1][2]], [DataYear[Annee - 1][4],
+                     DataYear[Annee - 1][5], DataYear[Annee - 1][6]], [DataYear[Annee - 1][8], DataYear[Annee - 1][9],
+                     DataYear[Annee - 1][10]]]
+        Tot_1_t = DataYear[Annee - 1][3]
+        Tot_2_t = DataYear[Annee - 1][7]
 
-        # Appelle la fonction qui dessine le grphique des secteurs
-        plotSectors(self.figure, GraphData)
+        #Dessine le graphique des secteurs
+        #GraphData = [DataYear[Annee - 1][0], DataYear[Annee - 1][1],DataYear[Annee - 1][2],DataYear[Annee - 1][4],DataYear[Annee - 1][5],DataYear[Annee - 1][6], DataYear[Annee - 1][8],DataYear[Annee - 1][9],DataYear[Annee - 1][10]]
 
-        # Dessine le graph des totaux
+        plotSectors(self.figure, np.array(GraphData))
+
+        #Dessine le graphique des totaux
+        #Tot_1_t = DataYear[Annee - 1][3]
+        #Tot_2_t = DataYear[Annee - 1][7]
+        #Tot_3_t = gettotal(DataYearOne[2])
+
         totalsGraph = self.figure.add_subplot(212)
-        squarify.plot(sizes=[production_records[current_year - 1][3], production_records[current_year - 1][7]],
-                      label=['Total S1', 'Total S2'], color=['#3498db', '#e74c3c'], alpha=.8, ax=totalsGraph)
-        # Enlève les axes du graphique
+        squarify.plot(sizes=[Tot_1_t, Tot_2_t], label=['Total S1', 'Total S2'], color=['#3498db', '#e74c3c'], alpha=.8,
+                      ax=totalsGraph)
         totalsGraph.axis('off')
 
-        #Mets à jour le canevas
         self.canvas.draw()
 
-    def next(self):
-        """
-        Passe à l'année suivante
-        :return:
-        """
-        # Récupère la variable globale
-        global current_year
-        # Avance d'une année
-        current_year = current_year + 1
+    def nextStep(self):
+        global Annee
+        global DataYear
+        global CountSmallStep
+        Annee = Annee + 1
+        # Si année une
 
-        global production_records
+        if not DataYear[Annee-2]:
+            None
 
-        # Si pas année une
-        if production_records[current_year - 2]:
-            CalcNextYear()
+        elif CountSmallStep != 0:
+            CountSmallStep = 0
 
-        # Active le bouton permettant de revenir en arrière
-        mainWidget.btnPrevious.setEnabled(True)
+        else:
+            DataYear = caclanneesuivante(DataYear)
         self.plotGraphs()
 
-    def previous(self):
-        """
-        Passe à l'année précédente
-        :return:
-        """
-        # Récupère la variable global
-        global current_year
+    def previousStep(self):
+        global Annee
+        if Annee > 1:
+            Annee = Annee - 1
+        else:
+            None
+        self.plotGraphs()
 
-        # Si l'année actuelle n'est pas la première
-        if current_year > 1:
-            # Recule d'une année
-            current_year = current_year - 1
+    def btnNextSmallStep(self):
+        global Annee
+        global DataYear
+        global CountSmallStep
 
-            # Si on retourne à la première année, désactive le bouton de retour en arrière
-            if current_year == 1:
-                mainWidget.btnPrevious.setEnabled(False)
+        # Etape une
+        #L'étape une l'accumulation et la répartition de l'accumulation
+        if CountSmallStep == 0:
+            #On fait les calcule pour l'année suivante :
+            DataYear = caclanneesuivante(DataYear)
+            #On définit les accumulations
+            AccumulationCapConstSector1 = DataYear[Annee][0] - DataYear[Annee - 1][0]
+            AccumulationCapVarSector1 = DataYear[Annee][1] - DataYear[Annee - 1][1]
+            AccumulationCapConstSector2 = DataYear[Annee][4] - DataYear[Annee - 1][4]
+            AccumulationCapVarSector2 = DataYear[Annee][5] - DataYear[Annee - 1][5]
 
-            self.plotGraphs()
+            #On incrémente le compteur
+            CountSmallStep = CountSmallStep + 1
+            self.plot_clustered_stacked()
 
-    def plot_clustered_stacked(self, dfall=[], **kwargs):
+
+        # Etape deux
+        elif CountSmallStep == 1:
+            CountSmallStep = CountSmallStep + 1
+
+        # Etape trois
+        elif CountSmallStep == 2:
+            CountSmallStep = CountSmallStep + 1
+
+
+    def plot_clustered_stacked(self, dfall = [], **kwargs):
 
         # create fake dataframes
         # Les c
-        df1 = pd.DataFrame(np.array([[588, 0], [342, 80], [930, 0]]))
+        df1 = pd.DataFrame(np.array([[588, 0], [342, 0], [0, 0]]))
 
         # Les v
-        df2 = pd.DataFrame(np.array([[265, 0], [154, 0], [419, 0]]))
+        df2 = pd.DataFrame(np.array([[264, 0], [154, 0], [0, 0]]))
 
         # Les s
-        df3 = pd.DataFrame(np.array([[93, 0], [54, 0], [147, 0]]))
+        df3 = pd.DataFrame(np.array([[92, 11], [53, 0], [0, 0]]))
 
         dfall = [df1, df2, df3]
 
         self.figure.clf()
 
-        axe = self.figure.add_subplot(211)
+        axe = self.figure.add_subplot(111)
 
         for df in dfall:  # for each data frame
             axe = df.plot(kind="bar",
@@ -537,29 +518,24 @@ class MainWidget(QWidget):
                     rect.set_width(1 / 4)
 
                     if count <= 2:
-                        rect.set_color("#3498db")
+                        rect.set_color("blue")
                     elif count == 6 or count == 7 or count == 8:
-                        rect.set_color("#e74c3c")
+                        rect.set_color("red")
                     elif count == 12 or count == 13 or count == 14:
-                        rect.set_color("#f1c40f")
+                        rect.set_color("yellow")
 
                     count = count + 1
 
         axe.set_xticks((np.arange(0, 6, 2) + 1 / 4) / 2)
         axe.set_xticklabels(["Secteur 1", "Secteur 2", "Total"], rotation=0)
 
-        # Définit la grille
-        axe.grid(True, 'major', 'y', ls='--', lw=.5, c='k', alpha=.3)
+        l1 = axe.legend(h[:2], ["base", "ajout"], loc=[1.01, 0.5])
 
-        # l1 = axe.legend(h[:2], ["base", "ajout"], loc=[1.01, 0.5])
-        # axe.add_artist(l1)
-
-        totalsGraph = self.figure.add_subplot(212)
-        squarify.plot(sizes=[946, 550], label=['Total S1', 'Total S2'], color=['#3498db', '#e74c3c'], alpha=.8,
-                      ax=totalsGraph)
-        totalsGraph.axis('off')
+        axe.add_artist(l1)
 
         self.canvas.draw()
+
+        return axe
 
 
 app = QApplication(sys.argv)

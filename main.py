@@ -3,6 +3,7 @@ import sys
 import matplotlib
 import matplotlib.figure
 import matplotlib.pyplot as plt
+from matplotlib import rc
 import numpy as np
 import pandas as pd
 import squarify
@@ -21,7 +22,12 @@ Total_t = 1496
 RapportSecteurs = 1.72
 Annee = 1
 CountSmallStep = 0
-
+AccumulationCapConstSector1 = 0
+AccumulationCapVarSector1 = 0
+AccumulationCapConstSector2 = 0
+AccumulationCapVarSector2 = 0
+SoldSurplusSector1 = 0
+SoldSurplusSector2 = 0
 
 def plotSectors(figure, data):
     """
@@ -383,6 +389,20 @@ class MainWidget(QWidget):
         RapportSecteurs = 1.72
         global Annee
         Annee = 1
+        global CountSmallStep
+        CountSmallStep = 0
+        global AccumulationCapConstSector1
+        AccumulationCapConstSector1 = 0
+        global AccumulationCapVarSector1
+        AccumulationCapVarSector1 = 0
+        global AccumulationCapConstSector2
+        AccumulationCapConstSector2 = 0
+        global AccumulationCapVarSector2
+        AccumulationCapVarSector2 = 0
+        global SoldSurplusSector1
+        SoldSurplusSector1 = 0
+        global SoldSurplusSector2
+        SoldSurplusSector2 = 0
 
         #Dessine le graphique
         self.plotGraphs()
@@ -430,6 +450,12 @@ class MainWidget(QWidget):
         global Annee
         global DataYear
         global CountSmallStep
+        global AccumulationCapConstSector1
+        global AccumulationCapVarSector1
+        global AccumulationCapConstSector2
+        global AccumulationCapVarSector2
+        global SoldSurplusSector1
+        global SoldSurplusSector2
         Annee = Annee + 1
         # Si année une
 
@@ -438,6 +464,12 @@ class MainWidget(QWidget):
 
         elif CountSmallStep != 0:
             CountSmallStep = 0
+            AccumulationCapConstSector1 = 0
+            AccumulationCapVarSector1 = 0
+            AccumulationCapConstSector2 = 0
+            AccumulationCapVarSector2 = 0
+            SoldSurplusSector1 = 0
+            SoldSurplusSector2 = 0
 
         else:
             DataYear = caclanneesuivante(DataYear)
@@ -455,6 +487,12 @@ class MainWidget(QWidget):
         global Annee
         global DataYear
         global CountSmallStep
+        global AccumulationCapConstSector1
+        global AccumulationCapVarSector1
+        global AccumulationCapConstSector2
+        global AccumulationCapVarSector2
+        global SoldSurplusSector1
+        global SoldSurplusSector2
 
         # Etape une
         #L'étape une l'accumulation et la répartition de l'accumulation
@@ -466,32 +504,114 @@ class MainWidget(QWidget):
             AccumulationCapVarSector1 = DataYear[Annee][1] - DataYear[Annee - 1][1]
             AccumulationCapConstSector2 = DataYear[Annee][4] - DataYear[Annee - 1][4]
             AccumulationCapVarSector2 = DataYear[Annee][5] - DataYear[Annee - 1][5]
+            SoldSurplusSector1 = DataYear[Annee][2] - AccumulationCapConstSector1 - AccumulationCapVarSector1
+            SoldSurplusSector2 = DataYear[Annee][6] - AccumulationCapConstSector2 - AccumulationCapVarSector2
 
             #On incrémente le compteur
             CountSmallStep = CountSmallStep + 1
-            self.plot_clustered_stacked()
+            #self.plot_clustered_stacked()
+            self.plot_smallstep()
 
 
         # Etape deux
         elif CountSmallStep == 1:
             CountSmallStep = CountSmallStep + 1
+            # self.plot_clustered_stacked()
+            self.plot_smallstep()
 
         # Etape trois
         elif CountSmallStep == 2:
-            CountSmallStep = CountSmallStep + 1
+            self.plot_smallstep()
+            self.nextStep()
+            CountSmallStep = 0
+            AccumulationCapConstSector1 = 0
+            AccumulationCapVarSector1 = 0
+            AccumulationCapConstSector2 = 0
+            AccumulationCapVarSector2 = 0
+            SoldSurplusSector1 = 0
+            SoldSurplusSector2 = 0
+
+    def plot_smallstep(self):
+        global Annee
+        global DataYear
+        global CountSmallStep
+        global AccumulationCapConstSector1
+        global AccumulationCapVarSector1
+        global AccumulationCapConstSector2
+        global AccumulationCapVarSector2
+        global SoldSurplusSector1
+        global SoldSurplusSector2
+
+        # y-axis in bold
+        rc('font')
+
+        # Values of each group
+        if CountSmallStep == 1:
+            bars1 = [DataYear[Annee][0], 0, 0, 0, DataYear[Annee][4], 0, 0, 0, DataYear[Annee][8], 0, 0]
+            bars2 = [0, DataYear[Annee][1], 0, 0, 0, DataYear[Annee][5], 0, 0, 0, DataYear[Annee][9], 0]
+            bars3 = [0, 0, (SoldSurplusSector1 + AccumulationCapVarSector1 + AccumulationCapConstSector1), 0, 0, 0,
+                     (SoldSurplusSector2 + AccumulationCapVarSector2 + AccumulationCapConstSector2), 0, 0, 0, 0]
+            bars4 = [0, 0, (SoldSurplusSector1 + AccumulationCapVarSector1), 0, 0, 0,
+                     (SoldSurplusSector2 + AccumulationCapVarSector2), 0, 0, 0, 0]
+            bars5 = [0, 0, SoldSurplusSector1, 0, 0, 0, SoldSurplusSector2, 0, 0, 0, DataYear[Annee][10]]
+            bars6 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+        elif CountSmallStep == 2:
+            bars1 = [DataYear[Annee][0], 0, 0, 0, 0, 0, 0, 0, DataYear[Annee][8], 0, 0]
+            bars2 = [0, 0, 0, 0, 0, DataYear[Annee][5], 0, 0, 0, DataYear[Annee][9], 0]
+            bars3 = [0, 0, (SoldSurplusSector1 + AccumulationCapVarSector1 + AccumulationCapConstSector1), 0, 0, 0,
+                     0, 0, 0, 0, 0]
+            bars4 = [0, 0, 0, 0, 0, 0,
+                     (SoldSurplusSector2 + AccumulationCapVarSector2 + AccumulationCapConstSector2), 0, 0, 0, 0]
+            bars5 = [0, 0, 0, 0, 0, 0, (SoldSurplusSector2 + AccumulationCapConstSector2), 0, 0, 0, DataYear[Annee][10]]
+            bars6 = [0, DataYear[Annee][1], (SoldSurplusSector1 + AccumulationCapVarSector1), 0, DataYear[Annee][4], 0, AccumulationCapConstSector2, 0, 0, 0, 0]
+
+        else:
+            bars1 = [DataYear[Annee][0], 0, 0, DataYear[Annee][4], 0, 0, 0, 0, DataYear[Annee][8], 0, 0]
+            bars2 = [0, 0, 0, 0, 0, DataYear[Annee][5], 0, 0, 0, DataYear[Annee][9], 0]
+            bars3 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+            bars4 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+            bars5 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+            bars6 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+        # Heights of bars1 + bars2
+        bars = np.add(bars1, bars2).tolist()
+
+        # The position of the bars on the x-axis
+        r = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+        # Names of group and bar width
+        names = ['', 'Secteur 1', '', '', '', 'Secteur 2', '', '', '', 'Total', '']
+        barWidth = 1
+
+        # Create brown bars
+        plt.bar(r, bars1, color='#3498db', edgecolor='white', width=barWidth)
+        # Create green bars (middle), on top of the first ones
+        plt.bar(r, bars2, bottom=bars1, color='#e74c3c', edgecolor='white', width=barWidth)
+        # Create green bars (top)
+        plt.bar(r, bars3, bottom=bars, color='green', edgecolor='white', width=barWidth)
+
+        plt.bar(r, bars4, bottom=bars, color='orange', edgecolor='white', width=barWidth)
+        plt.bar(r, bars5, bottom=bars, color='#f1c40f', edgecolor='white', width=barWidth)
+        plt.bar(r, bars6, bottom=bars, color='black', edgecolor='white', width=barWidth)
+
+        # Custom X axis
+        plt.xticks(r, names)
+        plt.show()
+
 
 
     def plot_clustered_stacked(self, dfall = [], **kwargs):
 
         # create fake dataframes
         # Les c
-        df1 = pd.DataFrame(np.array([[588, 0], [342, 0], [0, 0]]))
+        df1 = pd.DataFrame(np.array([[588, 0, 0], [342, 0, 0], [0, 0, 0]]))
 
         # Les v
         df2 = pd.DataFrame(np.array([[264, 0], [154, 0], [0, 0]]))
 
         # Les s
-        df3 = pd.DataFrame(np.array([[92, 11], [53, 0], [0, 0]]))
+        df3 = pd.DataFrame(np.array([[92, 50], [53, 0], [0, 0]]))
 
         dfall = [df1, df2, df3]
 
